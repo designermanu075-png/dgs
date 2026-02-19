@@ -1,58 +1,140 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Orçamento FiveM</title>
-  <link rel="stylesheet" href="style.css">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Orçamento FiveM</title>
+
+<style>
+body{
+  font-family: Arial, sans-serif;
+  background:#f4f6f9;
+  padding:40px;
+}
+
+.card{
+  max-width:600px;
+  margin:auto;
+  background:#fff;
+  padding:30px;
+  border-radius:12px;
+  box-shadow:0 10px 30px rgba(0,0,0,0.08);
+}
+
+h1{margin-bottom:10px;}
+
+input, select{
+  width:100%;
+  padding:10px;
+  margin-top:8px;
+  margin-bottom:20px;
+  border:1px solid #ccc;
+  border-radius:6px;
+}
+
+.tabs{
+  display:flex;
+  gap:10px;
+  margin-bottom:20px;
+}
+
+.tab{
+  padding:8px 14px;
+  border-radius:20px;
+  border:1px solid #ccc;
+  cursor:pointer;
+  background:#eee;
+  font-weight:bold;
+}
+
+.tab.active{
+  background:#2563eb;
+  border-color:#2563eb;
+  color:#fff;
+}
+
+.result{
+  background:#f1f5f9;
+  padding:15px;
+  border-radius:10px;
+  margin-top:15px;
+  font-weight:bold;
+}
+</style>
 </head>
 
 <body>
 
-<main class="card">
-<header class="header">
-<h1>Tabela de Orçamento FiveM</h1>
+<div class="card">
+<h1>Orçamento FiveM</h1>
 <p>Packs de 250 munições</p>
-</header>
 
-<section class="content">
+<label>Tipo de munição</label>
+<select id="tipo">
+  <option value="32500">Pistola — R$ 32.500</option>
+  <option value="55000">Sub — R$ 55.000</option>
+  <option value="85000">Fuzil — R$ 85.000</option>
+</select>
 
-<table>
-<thead>
-<tr>
-<th>Tipo</th>
-<th>Valor por pack</th>
-<th>Munição pedida</th>
-<th>Packs</th>
-<th>Subtotal</th>
-</tr>
-</thead>
-<tbody id="linhas"></tbody>
-</table>
+<label>Quantidade total de munições</label>
+<input type="number" id="quantidade" placeholder="Ex: 5000">
 
 <div class="tabs">
-<button class="tab active" data-desconto="0">Sem desconto</button>
-<button class="tab" data-desconto="20">Desconto 20%</button>
-<button class="tab" data-desconto="30">Desconto 30%</button>
+<button class="tab active" data-desc="0">Sem desconto</button>
+<button class="tab" data-desc="20">20% OFF</button>
+<button class="tab" data-desc="30">30% OFF</button>
 </div>
 
-<button id="limparOrcamento" class="btn-clear">Limpar orçamento</button>
+<div class="result">
+Packs: <span id="packs">0</span><br>
+Valor bruto: R$ <span id="valorBruto">0,00</span><br>
+Valor final: R$ <span id="valorFinal">0,00</span>
+</div>
 
-<section class="summary">
-<div class="box"><div>Total packs</div><div class="value" id="totalPacks">0</div></div>
-<div class="box"><div>Total sem desconto</div><div class="value">R$ <span id="totalSemDesconto">0,00</span></div></div>
-<div class="box"><div>Desconto</div><div class="value" id="descontoAplicado">0%</div></div>
-<div class="box"><div>Total final</div><div class="value">R$ <span id="totalComDesconto">0,00</span></div></div>
+</div>
 
-<!-- NOVOS CONTADORES -->
-<div class="box"><div>Total de Pólvora</div><div class="value" id="totalPolvora">0</div></div>
-<div class="box"><div>Total de Cartuchos</div><div class="value" id="totalCartucho">0</div></div>
+<script>
+const PACK = 250;
+let desconto = 0;
 
-</section>
+const quantidadeInput = document.getElementById("quantidade");
+const tipoSelect = document.getElementById("tipo");
 
-</section>
-</main>
+const packsEl = document.getElementById("packs");
+const brutoEl = document.getElementById("valorBruto");
+const finalEl = document.getElementById("valorFinal");
 
-<script src="script.js"></script>
+function formatar(v){
+  return v.toLocaleString("pt-BR",{minimumFractionDigits:2});
+}
+
+function calcular(){
+  const qtd = Number(quantidadeInput.value) || 0;
+  const precoPack = Number(tipoSelect.value);
+
+  const packs = Math.ceil(qtd / PACK);
+  const valorBruto = packs * precoPack;
+  const valorFinal = valorBruto * (1 - desconto/100);
+
+  packsEl.innerText = packs;
+  brutoEl.innerText = formatar(valorBruto);
+  finalEl.innerText = formatar(valorFinal);
+}
+
+quantidadeInput.addEventListener("input", calcular);
+tipoSelect.addEventListener("change", calcular);
+
+document.querySelectorAll(".tab").forEach(btn=>{
+  btn.addEventListener("click",()=>{
+    desconto = Number(btn.dataset.desc);
+    document.querySelectorAll(".tab").forEach(b=>b.classList.remove("active"));
+    btn.classList.add("active");
+    calcular();
+  });
+});
+
+calcular();
+</script>
+
 </body>
 </html>
