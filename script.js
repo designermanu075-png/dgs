@@ -97,3 +97,69 @@ document.getElementById('materialCalc').innerHTML=
 
 renderTabela();
 calcular();
+
+async function registrarEncomenda() {
+    const webhookURL = "https://discord.com/api/webhooks/1474128373520404612/CF3vXixIO1gf4494ddoL0uHFcN8Ittsc5E8kOIwgzWqL2UwRB539-q-5DIdC-O7QnQbY";
+
+    // Capturando os dados dos inputs e textos da tela
+    const dados = {
+        comprador: document.getElementById('inputComprador')?.value || "Não informado",
+        membro: document.getElementById('inputMembro')?.value || "Não informado",
+        situacao: document.getElementById('selectSituacao')?.value || "Em andamento",
+        
+        // Valores de Munição (Quantidade pedida)
+        pistola: document.getElementById('qtdPistola')?.value || "0",
+        smg: document.getElementById('qtdSmg')?.value || "0",
+        fuzil: document.getElementById('qtdFuzil')?.value || "0",
+
+        // Totais e Materiais
+        totalPacks: document.getElementById('totalPacks')?.innerText || "0",
+        totalFinal: document.getElementById('totalFinal')?.innerText || "R$ 0,00",
+        polvoras: document.getElementById('totalPolvoras')?.innerText || "0",
+        cartuchos: document.getElementById('totalCartuchos')?.innerText || "0"
+    };
+
+    // Montando o corpo da mensagem para o Discord
+    const corpoMensagem = {
+        username: "Sistema de Orçamentos",
+        avatar_url: "https://i.imgur.com/4M34hi2.png", // Opcional: ícone do bot
+        embeds: [{
+            title: "📦 NOVA ENCOMENDA REGISTRADA",
+            color: 5763719, // Verde
+            fields: [
+                { name: "👤 Comprador / FAC", value: `\`${dados.comprador}\``, inline: true },
+                { name: "🛠️ Membro Responsável", value: `\`${dados.membro}\``, inline: true },
+                { name: "🚦 Situação", value: dados.situacao, inline: true },
+                
+                { name: "━━━━━━━━━━━━━━━━━━━━━━━━", value: "**DETALHES DO PEDIDO**", inline: false },
+                { name: "🔫 Munição Pistola", value: `${dados.pistola} un.`, inline: true },
+                { name: "🔫 Munição Sub/SMG", value: `${dados.smg} un.`, inline: true },
+                { name: "🔫 Munição Fuzil", value: `${dados.fuzil} un.`, inline: true },
+                
+                { name: "━━━━━━━━━━━━━━━━━━━━━━━━", value: "**RESUMO E MATERIAIS**", inline: false },
+                { name: "📦 Total de Packs", value: dados.totalPacks, inline: true },
+                { name: "💰 Valor Final", value: `**${dados.totalFinal}**`, inline: true },
+                { name: "📦 Pólvoras: " + dados.polvoras, value: "🐚 Cartuchos: " + dados.cartuchos, inline: false }
+            ],
+            footer: { text: "Gerado em: " + new Date().toLocaleString('pt-BR') },
+            thumbnail: { url: "https://i.imgur.com/AfFp7pu.png" } // Opcional: imagem de munição
+        }]
+    };
+
+    try {
+        const response = await fetch(webhookURL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(corpoMensagem)
+        });
+
+        if (response.ok) {
+            alert("✅ Encomenda enviada para o Discord!");
+        } else {
+            alert("❌ Erro ao enviar encomenda.");
+        }
+    } catch (error) {
+        console.error("Erro na conexão:", error);
+        alert("❌ Erro de rede ao tentar conectar ao Discord.");
+    }
+}
