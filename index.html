@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Orçamento FiveM</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+<main class="card">
+<header class="header">
+<h1>Tabela de Orçamento FiveM</h1>
+<p>Packs de 250 munições</p>
+</header>
+
+<section class="content">
+
+<table>
+<thead>
+<tr>
+<th>Tipo</th>
+<th>Valor por pack</th>
+<th>Munição pedida</th>
+<th>Packs</th>
+<th>Subtotal</th>
+</tr>
+</thead>
+<tbody id="linhas"></tbody>
+</table>
+
+<div class="tabs">
+<button class="tab active" data-desconto="0">Sem desconto</button>
+<button class="tab" data-desconto="20">Desconto 20%</button>
+<button class="tab" data-desconto="30">Desconto 30%</button>
+</div>
+
+<button id="limparOrcamento" class="btn-clear">Limpar orçamento</button>
+
+<section class="summary">
+<div class="box"><div>Total packs</div><div class="value" id="totalPacks">0</div></div>
+<div class="box"><div>Total sem desconto</div><div class="value">R$ <span id="totalSemDesconto">0,00</span></div></div>
+<div class="box"><div>Desconto</div><div class="value" id="descontoAplicado">0%</div></div>
+<div class="box"><div>Total final</div><div class="value">R$ <span id="totalComDesconto">0,00</span></div></div>
+</section>
+
+<button id="registrarEncomenda" class="tab registrar-btn">Registrar Encomenda</button>
+
+<section id="formEncomenda" class="box hidden">
+<h3>Infos</h3>
+
+<label>Nome do comprador ou FAC</label>
+<input type="text" id="nomeComprador">
+
+<label>Encomenda feita por qual membro</label>
+<input type="text" id="membro">
+
+<label>Situação</label>
+<select id="situacao">
+<option>🔄 Em andamento:</option>
+<option>🔫 Falta entregar</option>
+<option>✅ Entregues</option>
+</select>
+
+<h3 style="margin-top:20px;">Produção / Material</h3>
+<p id="materialCalc">Nenhuma produção calculada.</p>
+
+<button id="confirmarRegistro" class="tab confirmar-btn">Confirmar Registro</button>
+</section>
+
+</section>
+</main>
+
+<script src="script.js"></script>
+</body>
+</html>
