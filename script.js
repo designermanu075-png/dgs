@@ -1,7 +1,5 @@
 const PACK_SIZE = 250;
 
-const WEBHOOK_URL = "https://discord.com/api/webhooks/1474128373520404612/CF3vXixIO1gf4494ddoL0uHFcN8Ittsc5E8kOIwgzWqL2UwRB539-q-5DIdC-O7QnQbY";
-
 const produtos = [
   { id:'pistola', nome:'Munição de Pistola', precoPack:32500, polvora:65 },
   { id:'sub', nome:'Munição de Sub/SMG', precoPack:55000, polvora:85 },
@@ -13,7 +11,8 @@ const totalPacksEl = document.getElementById('totalPacks');
 const totalSemDescontoEl = document.getElementById('totalSemDesconto');
 const descontoAplicadoEl = document.getElementById('descontoAplicado');
 const totalComDescontoEl = document.getElementById('totalComDesconto');
-const materialCalcEl = document.getElementById('materialCalc');
+const totalPolvoraEl = document.getElementById('totalPolvora');
+const totalCartuchoEl = document.getElementById('totalCartucho');
 
 let descontoAtual = 0;
 
@@ -66,9 +65,8 @@ function calcular(){
   descontoAplicadoEl.textContent = `${descontoAtual}%`;
   totalComDescontoEl.textContent = formatoBRL(totalFinal);
 
-  materialCalcEl.innerHTML =
-    `Pólvoras: <strong>${totalPolvora}</strong><br>
-     Cartuchos: <strong>${totalCartucho}</strong>`;
+  totalPolvoraEl.textContent = totalPolvora;
+  totalCartuchoEl.textContent = totalCartucho;
 }
 
 document.querySelectorAll('.tab[data-desconto]').forEach(btn=>{
@@ -89,58 +87,6 @@ document.getElementById('limparOrcamento')
     descontoAtual=0;
     calcular();
   });
-
-document.getElementById('registrarEncomenda')
-  .addEventListener('click',()=>{
-    document.getElementById('formEncomenda')
-      .classList.toggle('hidden');
-  });
-
-document.getElementById('confirmarRegistro')
-  .addEventListener('click',()=>{
-
-  const nome = document.getElementById('nomeComprador').value || "Não informado";
-  const membro = document.getElementById('membro').value || "Não informado";
-  const situacao = document.getElementById('situacao').value;
-
-  let resumoProdutos="";
-  produtos.forEach(p=>{
-    const qtd = Number(document.getElementById(`qtd-${p.id}`).value)||0;
-    if(qtd>0){
-      resumoProdutos += `• ${p.nome}: ${qtd}\n`;
-    }
-  });
-
-  const mensagem = {
-    content: "📦 **NOVA ENCOMENDA REGISTRADA**",
-    embeds: [
-      {
-        color: 5763719,
-        fields: [
-          { name: "👤 Comprador", value: nome, inline: true },
-          { name: "👮 Membro", value: membro, inline: true },
-          { name: "📌 Situação", value: situacao, inline: false },
-          { name: "🛒 Produtos", value: resumoProdutos || "Nenhum", inline: false },
-          { name: "💰 Valor Final", value: `R$ ${totalComDescontoEl.textContent}`, inline: true },
-          { name: "🧪 Materiais", value: materialCalcEl.innerText, inline: false }
-        ]
-      }
-    ]
-  };
-
-  fetch(WEBHOOK_URL,{
-    method:"POST",
-    headers:{ "Content-Type":"application/json" },
-    body:JSON.stringify(mensagem)
-  })
-  .then(()=>{
-    alert("Encomenda enviada pro Discord 🚀");
-  })
-  .catch(()=>{
-    alert("Erro ao enviar webhook");
-  });
-
-});
 
 renderTabela();
 calcular();
