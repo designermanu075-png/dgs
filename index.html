@@ -1,77 +1,81 @@
-<!doctype html>
-<html lang="pt-BR">
+<!DOCTYPE html>
+<html lang="pt-br">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Orçamento FiveM</title>
-  <link rel="stylesheet" href="style.css">
+<meta charset="UTF-8">
+<title>Registro de Encomenda</title>
 </head>
-
 <body>
 
-<main class="card">
-<header class="header">
-<h1>Tabela de Orçamento FiveM</h1>
-<p>Packs de 250 munições</p>
-</header>
+<h2>Registrar Encomenda</h2>
 
-<section class="content">
+<form id="registroForm">
 
-<table>
-<thead>
-<tr>
-<th>Tipo</th>
-<th>Valor por pack</th>
-<th>Munição pedida</th>
-<th>Packs</th>
-<th>Subtotal</th>
-</tr>
-</thead>
-<tbody id="linhas"></tbody>
-</table>
+<input type="text" name="comprador" placeholder="Nome do comprador ou FAC" required>
+<br><br>
 
-<div class="tabs">
-<button class="tab active" data-desconto="0">Sem desconto</button>
-<button class="tab" data-desconto="20">Desconto 20%</button>
-<button class="tab" data-desconto="30">Desconto 30%</button>
-</div>
+<input type="text" name="membro" placeholder="Encomenda feita por qual membro" required>
+<br><br>
 
-<button id="limparOrcamento" class="btn-clear">Limpar orçamento</button>
-
-<section class="summary">
-<div class="box"><div>Total packs</div><div class="value" id="totalPacks">0</div></div>
-<div class="box"><div>Total sem desconto</div><div class="value">R$ <span id="totalSemDesconto">0,00</span></div></div>
-<div class="box"><div>Desconto</div><div class="value" id="descontoAplicado">0%</div></div>
-<div class="box"><div>Total final</div><div class="value">R$ <span id="totalComDesconto">0,00</span></div></div>
-</section>
-
-<button id="registrarEncomenda" class="tab registrar-btn">Registrar Encomenda</button>
-
-<section id="formEncomenda" class="box hidden">
-<h3>Infos</h3>
-
-<label>Nome do comprador ou FAC</label>
-<input type="text" id="nomeComprador">
-
-<label>Encomenda feita por qual membro</label>
-<input type="text" id="membro">
-
-<label>Situação</label>
-<select id="situacao">
-<option>🔄 Em andamento:</option>
-<option>🔫 Falta entregar</option>
-<option>✅ Entregues</option>
+<select name="situacao">
+<option value="Entregue">Entregue</option>
+<option value="Pendente">Pendente</option>
 </select>
 
-<h3 style="margin-top:20px;">Produção / Material</h3>
-<p id="materialCalc">Nenhuma produção calculada.</p>
+<h3>Produção / Material</h3>
 
-<button id="confirmarRegistro" class="tab confirmar-btn">Confirmar Registro</button>
-</section>
+<label>Quantidade de Packs:</label>
+<input type="number" id="packs" value="1" min="1">
+<br><br>
 
-</section>
-</main>
+<p>Pólvora: <span id="polvora">100</span></p>
+<p>Cartuchos: <span id="cartucho">200</span></p>
 
-<script src="script.js"></script>
+<button type="submit">Confirmar Registro</button>
+
+</form>
+
+<script>
+const polvoraPorPack = 100;
+const cartuchoPorPack = 200;
+
+const packsInput = document.getElementById("packs");
+const polvoraSpan = document.getElementById("polvora");
+const cartuchoSpan = document.getElementById("cartucho");
+
+function atualizarMaterial() {
+    const packs = parseInt(packsInput.value) || 1;
+    polvoraSpan.innerText = packs * polvoraPorPack;
+    cartuchoSpan.innerText = packs * cartuchoPorPack;
+}
+
+packsInput.addEventListener("input", atualizarMaterial);
+
+document.getElementById("registroForm").addEventListener("submit", async function(e) {
+    e.preventDefault();
+
+    const data = {
+        comprador: document.querySelector("[name='comprador']").value,
+        membro: document.querySelector("[name='membro']").value,
+        situacao: document.querySelector("[name='situacao']").value,
+        polvora: polvoraSpan.innerText,
+        cartucho: cartuchoSpan.innerText
+    };
+
+    const response = await fetch("/api/enviar", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify(data)
+    });
+
+    if (response.ok) {
+        alert("Registro enviado 🚀");
+    } else {
+        alert("Erro ao enviar");
+    }
+});
+</script>
+
 </body>
 </html>
