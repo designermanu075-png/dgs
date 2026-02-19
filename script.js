@@ -55,7 +55,7 @@ function calcular() {
     descontoAplicadoEl.textContent = `${descontoAtual}%`;
     totalComDescontoEl.textContent = formatoBRL(totalFinal);
     
-    atualizarMaterial(); // Garante que os materiais atualizem junto com os valores
+    atualizarMaterial();
 }
 
 document.querySelectorAll('.tab[data-desconto]').forEach(btn => {
@@ -73,7 +73,6 @@ document.getElementById('limparOrcamento').addEventListener('click', () => {
     calcular();
 });
 
-// Botão que apenas mostra/esconde o formulário
 document.getElementById('registrarEncomenda').addEventListener('click', () => {
     document.getElementById('formEncomenda').classList.toggle('hidden');
 });
@@ -97,72 +96,72 @@ function atualizarMaterial() {
         `Pólvoras: <strong id="valPolvora">${polvora}</strong><br>Cartuchos: <strong id="valCartucho">${cartucho}</strong>`;
 }
 
-// INICIALIZAÇÃO
 renderTabela();
 calcular();
 
-// --- FUNÇÃO PARA O DISCORD ---
+// --- LOGICA DE ENVIO PARA O DISCORD ---
 
-// Conecta a função ao botão "Confirmar Registro"
 document.getElementById('confirmarRegistro').addEventListener('click', enviarParaDiscord);
 
 async function enviarParaDiscord() {
-    const webhookURL = "https://discord.com/api/webhooks/1474128373520404612/CF3vXixIO1gf4494ddoL0uHFcN8Ittsc5E8kOIwgzWqL2UwRB539-q-5DIdC-O7QnQbY";
+    // Webhook 1: Registro Geral (Orçamentos)
+    const webhookGeral = "https://discord.com/api/webhooks/1474128373520404612/CF3vXixIO1gf4494ddoL0uHFcN8Ittsc5E8kOIwgzWqL2UwRB539-q-5DIdC-O7QnQbY";
+    
+    // Webhook 2: Aba de Entregas (NOVO)
+    const webhookEntregas = "https://discord.com/api/webhooks/1474150006968680498/s5JnM0R5dWVna84bW6uM7gw_UrcllxwG30FaQzjcZ1NsKg6KnzCa3i6UhrDxGspdW2HJ";
 
-    // Capturando os dados com os IDs corretos que o seu script gera
+    const situacao = document.getElementById('situacao').value;
+    
     const dados = {
         comprador: document.getElementById('nomeComprador').value || "Não informado",
         membro: document.getElementById('membro').value || "Não informado",
-        situacao: document.getElementById('situacao').value,
-        
-        // Quantidades (pegando dos inputs gerados no renderTabela)
+        situacao: situacao,
         pistola: document.getElementById('qtd-pistola').value,
         smg: document.getElementById('qtd-sub').value,
         fuzil: document.getElementById('qtd-fuzil').value,
-
-        // Totais e Materiais
         totalPacks: document.getElementById('totalPacks').innerText,
         totalFinal: document.getElementById('totalComDesconto').innerText,
         materiais: document.getElementById('materialCalc').innerText.replace(/\n/g, " | ")
     };
 
     const corpoMensagem = {
-        username: "Sistema de Orçamentos",
+        username: "Arsenal System",
         embeds: [{
-            title: "📦 NOVA ENCOMENDA REGISTRADA",
-            color: 5763719,
+            title: situacao === "✅ Entregues" ? "✅ ENCOMENDA FINALIZADA" : "📦 NOVO REGISTRO",
+            color: situacao === "✅ Entregues" ? 3066993 : 15105570, // Verde se entregue, Laranja se pendente
             fields: [
-                { name: "👤 Comprador / FAC", value: `\`${dados.comprador}\``, inline: true },
+                { name: "👤 Comprador", value: `\`${dados.comprador}\``, inline: true },
                 { name: "🛠️ Membro", value: `\`${dados.membro}\``, inline: true },
                 { name: "🚦 Situação", value: dados.situacao, inline: true },
-                
-                { name: "━━━━━━━━━━━━━━━━━━━━", value: "**MUNIÇÕES**", inline: false },
-                { name: "🔫 Pistola", value: `${dados.pistola} un.`, inline: true },
-                { name: "🔫 Sub/SMG", value: `${dados.smg} un.`, inline: true },
-                { name: "🔫 Fuzil", value: `${dados.fuzil} un.`, inline: true },
-                
-                { name: "━━━━━━━━━━━━━━━━━━━━", value: "**RESUMO FINAL**", inline: false },
-                { name: "📦 Total Packs", value: dados.totalPacks, inline: true },
                 { name: "💰 Total", value: `**R$ ${dados.totalFinal}**`, inline: true },
-                { name: "🛠️ Produção", value: dados.materiais, inline: false }
+                { name: "📦 Packs", value: dados.totalPacks, inline: true },
+                { name: "🔫 Detalhes", value: `Pistola: ${dados.pistola} | Sub: ${dados.smg} | Fuzil: ${dados.fuzil}`, inline: false }
             ],
-            footer: { text: "Gerado em: " + new Date().toLocaleString('pt-BR') }
+            footer: { text: "Data: " + new Date().toLocaleString('pt-BR') }
         }]
     };
 
     try {
-        const response = await fetch(webhookURL, {
+        // SEMPRE envia para o Geral
+        await fetch(webhookGeral, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(corpoMensagem)
         });
 
-        if (response.ok) {
-            alert("✅ Encomenda enviada para o Discord!");
+        // SE estiver marcado como "Entregue", envia TAMBÉM para a nova aba
+        if (situacao === "✅ Entregues") {
+            await fetch(webhookEntregas, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(corpoMensagem)
+            });
+            alert("✅ Registro geral e Entrega confirmados!");
         } else {
-            alert("❌ Erro ao enviar para o Discord.");
+            alert("✅ Registro geral enviado com sucesso!");
         }
+
     } catch (error) {
-        alert("❌ Erro de conexão.");
+        alert("❌ Erro ao conectar com o Discord.");
     }
 }
