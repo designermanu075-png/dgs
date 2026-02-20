@@ -21,6 +21,9 @@ input, select { background: #0f172a; border: 1px solid var(--border); color: whi
 .btn-register-trigger { background: var(--success); }
 .btn-secondary-outline { width: 100%; padding: 10px; background: transparent; color: #94a3b8; border: 1px solid var(--border); border-radius: 8px; cursor: pointer; margin-top: 10px; }
 .hidden { display: none !important; }
-.tab { background: var(--bg-card); border: 1px solid var(--border); color: #94a3b8; padding: 10px 20px; border-radius: 6px; cursor: pointer; margin-right: 10px; }
+.tab { background: var(--bg-card); border: 1px solid var(--border); color: #94a3b8; padding: 10px 20px; border-radius: 6px; cursor: pointer; margin-right: 10px; transition: 0.2s; }
 .tab.active { background: var(--accent); color: white; }
+.info-parceria { margin-top: 15px; padding: 12px; border-radius: 8px; font-weight: 500; font-size: 0.9rem; min-height: 45px; }
+.alerta-venda { background: rgba(239, 68, 68, 0.1); color: #f87171; border-left: 4px solid #ef4444; }
+.info-venda { background: rgba(59, 130, 246, 0.1); color: #60a5fa; border-left: 4px solid var(--accent); }
 .material-info { background: #0f172a; padding: 10px; border-radius: 8px; border: 1px solid var(--border); margin-bottom: 15px; font-size: 0.9rem; }
