@@ -1,5 +1,5 @@
 const PACK_SIZE = 250;
-const URL_CONTADOR_GLOBAL = "https://script.google.com/macros/s/AKfycbx5I8DIB1pQ0e6VOA3Nol7e04Iyp1f-muy400JB9zmO5GDA8vlh3otrMTfrfCMUs2VYIA/exec";
+const URL_CONTADOR_GLOBAL = "https://script.google.com/macros/s/AKfycbxaOoXnuCWiedqgG5XFr4EWCNTr5_ohr6pfavnqfdG0FAR270mRE02N9OXYi1Ec-GpX4g/exec";
 
 const produtos = [
     { id: 'pistola', nome: 'Munição de Pistola', precoPack: 32500 },
@@ -83,11 +83,11 @@ function gerarDetalhes() {
     return detalhes;
 }
 
-// FINALIZAR E ENVIAR
+// REGISTRO DE ENCOMENDA
 document.getElementById('confirmarRegistro').addEventListener('click', async () => {
     const btn = document.getElementById('confirmarRegistro');
     const detalhes = gerarDetalhes();
-    if (!detalhes) return alert("Adicione munições!");
+    if (!detalhes) return alert("Selecione munições!");
 
     btn.disabled = true; btn.innerText = "⏳ Gravando...";
     const situacao = document.getElementById('situacao').value;
@@ -129,9 +129,10 @@ document.getElementById('confirmarRegistro').addEventListener('click', async () 
     } catch (e) { alert("Erro ao enviar."); btn.disabled = false; }
 });
 
-// ATUALIZAR STATUS (BUSCA)
+// ATUALIZAR STATUS (BUSCA INTELIGENTE)
 document.getElementById('btnUpdateStatus').addEventListener('click', async () => {
     const inputVal = document.getElementById('updateNumPedido').value;
+    // Limpa o ID para buscar apenas o número bruto (Ex: 0007 vira 7)
     const idLimpo = inputVal.replace('#', '').replace(/^0+/, '');
     const situ = document.getElementById('updateSituacao').value;
     const btn = document.getElementById('btnUpdateStatus');
@@ -145,12 +146,14 @@ document.getElementById('btnUpdateStatus').addEventListener('click', async () =>
 
         if (data === "erro") {
             alert("❌ Pedido não encontrado na planilha!");
-        } else if (situ.includes('✅')) {
-            await dispararLogsFinais("#" + idLimpo.padStart(4, '0'), data, situ);
-            alert("✅ Status Atualizado!");
-            location.reload();
         } else {
-            alert("Status alterado.");
+            // Se encontrar, dispara os logs se o status for Entregues
+            if (situ.includes('✅')) {
+                await dispararLogsFinais("#" + idLimpo.padStart(4, '0'), data, situ);
+                alert("✅ Status Atualizado e Logs Financeiros Enviados!");
+            } else {
+                alert("Status alterado com sucesso.");
+            }
             location.reload();
         }
     } catch (e) { alert("Erro ao buscar dados."); }
@@ -174,14 +177,16 @@ async function dispararLogsFinais(id, dados, situacao) {
             { name: "🛠️ Membro", value: dados.membro, inline: true },
             { name: "💰 Total Venda", value: dados.total, inline: true },
             { name: "💸 Comissão", value: dados.comissao, inline: true },
-            { name: "📉 Desconto", value: dados.desconto, inline: true }
+            { name: "📉 Desconto", value: dados.desconto, inline: true },
+            { name: "🚦 Status", value: situacao, inline: true }
         ]
     };
+    // Envia para Registro de Venda e Comissão
     await fetch(webhooks.registroVenda, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ embeds: [embedReg] }) });
     await fetch(webhooks.comissao, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ embeds: [embedCom] }) });
 }
 
-// INTERFACE
+// LOGICA DAS TABS DE DESCONTO
 document.querySelectorAll('.tab').forEach(btn => {
     btn.addEventListener('click', () => {
         descontoAtual = Number(btn.dataset.desconto);
@@ -190,6 +195,7 @@ document.querySelectorAll('.tab').forEach(btn => {
         const infoEl = document.getElementById('info-parceria');
         infoEl.textContent = parcerias[descontoAtual];
         infoEl.className = `info-parceria ${descontoAtual === 0 ? 'alerta-venda' : 'info-venda'}`;
+        // Recalcula os valores assim que clica na aba
         calcular();
     });
 });

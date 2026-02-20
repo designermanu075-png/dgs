@@ -38,4 +38,7 @@ td { padding: 15px 0; border-top: 1px solid var(--border); }
 .info-parceria { margin-top: 15px; padding: 12px; border-radius: 8px; font-weight: 500; font-size: 0.9rem; min-height: 45px; }
 .alerta-venda { background: rgba(239, 68, 68, 0.1); color: #f87171; border-left: 4px solid #ef4444; }
 .info-venda { background: rgba(59, 130, 246, 0.1); color: #60a5fa; border-left: 4px solid #3b82f6; }
-.material-info { background: #0f172a; padding: 10px; border-radius: 8px; border: 1px solid var(--border); margin-bottom: 15px; }
+.tab.active { background: #3b82f6 !important; color: white !important; }
+.hidden { display: none !important; }
+.commission-box { margin-top: 15px; padding: 12px; background: rgba(34, 197, 94, 0.1); border: 1px dashed #22c55e; border-radius: 8px; color: #22c55e; }
+.stat-row { display: flex; justify-content: space-between; margin-bottom: 12px; }
