@@ -2,21 +2,30 @@
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <title>Arsenal System - DGS</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dragons | Sistema Interno</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <div class="dashboard">
         <div class="main-content">
             <header class="header">
-                <h1>Arsenal System <span class="badge">DGS</span></h1>
-                <button id="limparOrcamento" class="btn-clear-header">🗑️ Limpar Tudo</button>
+                <div class="logo-container">
+                    <img src="https://cdn.discordapp.com/attachments/1191888158795771934/1474404057664716956/NO_DINHEIRO_SUJO_30_1.png?ex=6999b948&is=699867c8&hm=d7fae3fe0359faebe8fa16f27559eaf2e76ed008816cfd0c8acace657a3b85c8&" alt="Dragons Logo" class="logo-header">
+                </div>
+                <button id="limparOrcamento" class="btn-limpar">🗑️ Limpar Tudo</button>
             </header>
 
             <section class="card-table">
                 <table>
                     <thead>
-                        <tr><th>Produto</th><th>Preço Pack</th><th>Qtd. Munições</th><th>Total Packs</th><th>Subtotal</th></tr>
+                        <tr>
+                            <th>Produto</th>
+                            <th>Preço Pack</th>
+                            <th>Qtd. Munições</th>
+                            <th>Total Packs</th>
+                            <th>Subtotal</th>
+                        </tr>
                     </thead>
                     <tbody id="linhas"></tbody>
                 </table>
@@ -62,7 +71,7 @@
 
             <div id="formUpdate" class="form-card hidden">
                 <h3>🔄 Atualizar Status</h3>
-                <input type="text" id="updateNumPedido" placeholder="Ex: 0001">
+                <input type="text" id="updateNumPedido" placeholder="Número do Pedido (Ex: 0001)">
                 <select id="updateSituacao">
                     <option>✅ Entregues</option>
                     <option>🔫 Falta entregar</option>
