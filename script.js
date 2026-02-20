@@ -1,8 +1,6 @@
 const PACK_SIZE = 250;
 const URL_CONTADOR_GLOBAL = "https://script.google.com/macros/s/AKfycbxAItxhKJpbXutZgnO_7W8KK7ABhsgn9rGAzF2E-QWYBjRCj614MXU-YDOLLKDQrtZXjQ/exec";
-
-// Cor Dragons padronizada (Decimal para 0056a9)
-const DRAGONS_COLOR = 22185;
+const DRAGONS_BLUE = 22185; // Cor 0056a9 em decimal
 
 const produtos = [
     { id: 'pistola', nome: 'Munição de Pistola', precoPack: 32500, pol: 65, car: 250 },
@@ -43,7 +41,7 @@ function calcular() {
         const packs = Math.ceil(qtd / PACK_SIZE);
         subGeral += packs * p.precoPack;
         packsGeral += packs;
-        polTotal += packs * p.pol; // 65, 85 ou 115 por pack
+        polTotal += packs * p.pol; // Cálculo individual por munição
         carTotal += packs * p.car;
         document.getElementById(`packs-${p.id}`).textContent = packs;
         document.getElementById(`subtotal-${p.id}`).textContent = formatoBRL(packs * p.precoPack);
@@ -58,18 +56,57 @@ function calcular() {
     document.getElementById('materialCalc').innerHTML = `🧨 Pólvoras: <strong>${polTotal}</strong> | 🐚 Cartuchos: <strong>${carTotal}</strong>`;
 }
 
-// REGISTRO DE ENCOMENDA
+// RESTAURAÇÃO DAS MENSAGENS E ABAS
+document.querySelectorAll('.tab').forEach(btn => {
+    btn.addEventListener('click', () => {
+        descontoAtual = Number(btn.dataset.desconto);
+        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+        btn.classList.add('active');
+        const info = document.getElementById('info-parceria');
+        info.textContent = parcerias[descontoAtual];
+        info.className = `info-parceria ${descontoAtual === 0 ? 'alerta-venda' : 'info-venda'}`;
+        calcular();
+    });
+});
+
+async function dispararLogsFinais(id, dados, situacao) {
+    const embedVenda = {
+        title: `✅ VENDA REGISTRADA ${id}`, color: DRAGONS_BLUE,
+        fields: [
+            { name: "👤 Comprador", value: dados.comprador, inline: true },
+            { name: "🛠️ Membro", value: dados.membro, inline: true },
+            { name: "📦 Detalhes", value: dados.detalhes, inline: false },
+            { name: "💰 Total", value: dados.total, inline: true }
+        ]
+    };
+    const embedCom = {
+        title: `💸 COMISSÃO GERADA ${id}`, color: DRAGONS_BLUE,
+        fields: [
+            { name: "👤 Comprador", value: dados.comprador, inline: true },
+            { name: "🛠️ Membro", value: dados.membro, inline: true },
+            { name: "💰 Total Venda", value: dados.total, inline: true },
+            { name: "💸 Comissão", value: dados.comissao, inline: true },
+            { name: "📉 Desconto", value: dados.desconto, inline: true },
+            { name: "🚦 Status", value: situacao, inline: true }
+        ]
+    };
+    // ENVIO PARA AMBOS OS CANAIS
+    await fetch(webhooks.registroVenda, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ embeds: [embedVenda] }) });
+    await fetch(webhooks.comissao, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ embeds: [embedCom] }) });
+}
+
+// LOGICA DE ENVIO REGISTRO
 document.getElementById('confirmarRegistro').addEventListener('click', async () => {
     let detalhes = "";
     produtos.forEach(p => {
         const q = Number(document.getElementById(`qtd-${p.id}`).value) || 0;
         if (q > 0) detalhes += `🔹 **${p.nome.replace("Munição de ", "")}:** ${q} un.\n`;
     });
-
-    if (!detalhes) return alert("Selecione as munições!");
+    if (!detalhes) return alert("Selecione munições!");
     const btn = document.getElementById('confirmarRegistro');
     btn.disabled = true; btn.innerText = "⏳ Enviando...";
 
+    const situacao = document.getElementById('situacao').value;
     const dados = {
         comprador: document.getElementById('nomeComprador').value || "Não informado",
         membro: document.getElementById('membro').value || "Não informado",
@@ -83,34 +120,31 @@ document.getElementById('confirmarRegistro').addEventListener('click', async () 
     try {
         const res = await fetch(URL_CONTADOR_GLOBAL, { method: 'POST', body: JSON.stringify(dados) });
         const id = "#" + (await res.text()).padStart(4, '0');
-
-        const embedEnc = {
-            title: `📋 REGISTRO DE ENCOMENDA ${id}`, color: DRAGONS_COLOR,
+        const embed = {
+            title: `📋 REGISTRO DE ENCOMENDA ${id}`, color: DRAGONS_BLUE,
             fields: [
                 { name: "👤 Comprador", value: dados.comprador, inline: true },
                 { name: "🛠️ Membro", value: dados.membro, inline: true },
                 { name: "💰 Total", value: dados.total, inline: true },
                 { name: "📦 Detalhes", value: detalhes, inline: false },
-                { name: "🚦 Status", value: document.getElementById('situacao').value, inline: true },
+                { name: "🚦 Status", value: situacao, inline: true },
                 { name: "🧨 Materiais", value: dados.materiais, inline: true }
             ], image: { url: "https://cdn.discordapp.com/attachments/1191888158795771934/1474355625847685224/NO_DINHEIRO_SUJO_30_4.png" }
         };
-
-        await fetch(webhooks.encomenda, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ embeds: [embedEnc] }) });
-        if (document.getElementById('situacao').value.includes('✅')) await dispararLogsFinais(id, dados, "✅ Entregues");
+        await fetch(webhooks.encomenda, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ embeds: [embed] }) });
+        if (situacao.includes('✅')) await dispararLogsFinais(id, dados, situacao);
         alert(`✅ Pedido ${id} enviado!`);
         location.reload();
     } catch (e) { alert("Erro ao enviar."); btn.disabled = false; }
 });
 
-// ATUALIZAR STATUS
+// BUSCA E ATUALIZAÇÃO
 document.getElementById('btnUpdateStatus').addEventListener('click', async () => {
     const idLimpo = document.getElementById('updateNumPedido').value.replace('#', '').replace(/^0+/, '');
     const situ = document.getElementById('updateSituacao').value;
-    if (!idLimpo) return alert("Digite o número do pedido!");
+    if (!idLimpo) return alert("Digite o número!");
     const btn = document.getElementById('btnUpdateStatus');
     btn.disabled = true; btn.innerText = "🔍 Buscando...";
-
     try {
         const res = await fetch(`${URL_CONTADOR_GLOBAL}?id=${idLimpo}`);
         const data = await res.json();
@@ -119,44 +153,6 @@ document.getElementById('btnUpdateStatus').addEventListener('click', async () =>
         alert("✅ Status Atualizado!");
         location.reload();
     } catch (e) { alert("Erro ao buscar dados."); btn.disabled = false; }
-});
-
-async function dispararLogsFinais(id, dados, situacao) {
-    const embedVenda = {
-        title: `✅ VENDA REGISTRADA ${id}`, color: DRAGONS_COLOR,
-        fields: [
-            { name: "👤 Comprador", value: dados.comprador, inline: true },
-            { name: "🛠️ Membro", value: dados.membro, inline: true },
-            { name: "📦 Detalhes", value: dados.detalhes, inline: false },
-            { name: "💰 Total", value: dados.total, inline: true }
-        ]
-    };
-    const embedCom = {
-        title: `💸 COMISSÃO GERADA ${id}`, color: DRAGONS_COLOR,
-        fields: [
-            { name: "👤 Comprador", value: dados.comprador, inline: true },
-            { name: "🛠️ Membro", value: dados.membro, inline: true },
-            { name: "💰 Total Venda", value: dados.total, inline: true },
-            { name: "💸 Comissão", value: dados.comissao, inline: true },
-            { name: "📉 Desconto", value: dados.desconto, inline: true },
-            { name: "🚦 Status", value: situacao, inline: true }
-        ]
-    };
-    await fetch(webhooks.registroVenda, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ embeds: [embedVenda] }) });
-    await fetch(webhooks.comissao, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ embeds: [embedCom] }) });
-}
-
-// INTERFACE
-document.querySelectorAll('.tab').forEach(btn => {
-    btn.addEventListener('click', () => {
-        descontoAtual = Number(btn.dataset.desconto);
-        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-        btn.classList.add('active');
-        const info = document.getElementById('info-parceria');
-        info.textContent = parcerias[descontoAtual];
-        info.className = `info-parceria ${descontoAtual === 0 ? 'alerta-venda' : 'info-venda'}`;
-        calcular();
-    });
 });
 
 document.getElementById('btnAbrirForm').addEventListener('click', () => { document.getElementById('formUpdate').classList.add('hidden'); document.getElementById('formEncomenda').classList.toggle('hidden'); });

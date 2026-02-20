@@ -1,24 +1,20 @@
 :root {
     --bg-body: #0f172a;
     --bg-card: #1e293b;
-    --accent: #3b82f6;
+    --dragons-blue: #0056a9;
     --success: #22c55e;
     --danger: #ef4444;
     --text-main: #f8fafc;
     --border: #334155;
-    --dragons-blue: #0056a9;
 }
 
 body { background: var(--bg-body); color: var(--text-main); font-family: 'Segoe UI', sans-serif; margin: 0; padding: 20px; }
 .dashboard { display: grid; grid-template-columns: 1fr 380px; gap: 24px; max-width: 1400px; margin: 0 auto; }
 
-/* CABEÇALHO E LOGO */
 .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; border-bottom: 2px solid var(--border); padding-bottom: 15px; }
-.logo-header { height: 60px; width: auto; object-fit: contain; }
-
-/* BOTÃO LIMPAR CUSTOMIZADO */
-.btn-limpar { background: rgba(239, 68, 68, 0.15); border: 1px solid var(--danger); color: #f87171; padding: 10px 20px; border-radius: 8px; font-weight: bold; cursor: pointer; transition: 0.3s; }
-.btn-limpar:hover { background: var(--danger); color: white; transform: scale(1.05); }
+.logo-header { height: 60px; width: auto; }
+.btn-limpar { background: rgba(239, 68, 68, 0.1); border: 1px solid var(--danger); color: #f87171; padding: 10px 20px; border-radius: 8px; font-weight: bold; cursor: pointer; transition: 0.3s; }
+.btn-limpar:hover { background: var(--danger); color: white; }
 
 .card-table, .summary-card, .form-card { background: var(--bg-card); border-radius: 12px; padding: 24px; border: 1px solid var(--border); margin-bottom: 20px; }
 table { width: 100%; border-collapse: collapse; }
@@ -28,19 +24,12 @@ input, select { background: #0f172a; border: 1px solid var(--border); color: whi
 .input-table { width: 90px; margin-bottom: 0; }
 
 .stat-row { display: flex; justify-content: space-between; margin-bottom: 12px; }
-.total { border-top: 1px solid var(--border); padding-top: 12px; margin-top: 12px; font-size: 1.2rem; color: #fff; }
+.total { border-top: 1px solid var(--border); padding-top: 12px; margin-top: 12px; font-size: 1.2rem; }
 .commission-box { margin-top: 15px; padding: 12px; background: rgba(34, 197, 94, 0.1); border: 1px dashed var(--success); border-radius: 8px; color: var(--success); }
 
-.btn-primary, .btn-register-trigger { width: 100%; padding: 14px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; color: white; transition: 0.3s; }
-.btn-primary { background: var(--accent); }
-.btn-register-trigger { background: var(--success); margin-top: 15px; }
-.btn-secondary-outline { width: 100%; padding: 10px; background: transparent; color: #94a3b8; border: 1px solid var(--border); border-radius: 8px; cursor: pointer; margin-top: 10px; }
-
-.hidden { display: none !important; }
 .tab { background: var(--bg-card); border: 1px solid var(--border); color: #94a3b8; padding: 10px 20px; border-radius: 8px; cursor: pointer; margin-right: 10px; }
 .tab.active { background: var(--dragons-blue); color: white; border-color: var(--dragons-blue); }
-
 .info-parceria { margin-top: 15px; padding: 12px; border-radius: 8px; font-weight: 500; min-height: 45px; }
 .alerta-venda { background: rgba(239, 68, 68, 0.1); color: #f87171; border-left: 4px solid var(--danger); }
-.info-venda { background: rgba(59, 130, 246, 0.1); color: #60a5fa; border-left: 4px solid var(--accent); }
-.material-info { background: #0f172a; padding: 12px; border-radius: 8px; border: 1px solid var(--border); margin-bottom: 15px; }
+.info-venda { background: rgba(59, 130, 246, 0.1); color: #60a5fa; border-left: 4px solid var(--dragons-blue); }
+.hidden { display: none !important; }
