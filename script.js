@@ -39,22 +39,25 @@ function renderTabela() {
 }
 
 function calcular() {
-    let totalGeral = 0; let packsGeral = 0;
+    let subGeral = 0; let packsGeral = 0;
     produtos.forEach(p => {
         const qtd = Number(document.getElementById(`qtd-${p.id}`).value) || 0;
         const packs = Math.ceil(qtd / PACK_SIZE);
-        const subtotal = packs * p.precoPack;
-        totalGeral += subtotal; packsGeral += packs;
+        const subItem = packs * p.precoPack;
+        subGeral += subItem; packsGeral += packs;
         document.getElementById(`packs-${p.id}`).textContent = packs;
-        document.getElementById(`subtotal-${p.id}`).textContent = formatoBRL(subtotal);
+        document.getElementById(`subtotal-${p.id}`).textContent = formatoBRL(subItem);
     });
     
-    const totalFinal = totalGeral * (1 - descontoAtual / 100);
+    const totalFinal = subGeral * (1 - descontoAtual / 100);
+    const valorComissao = totalFinal * 0.10;
+
     document.getElementById('totalPacks').textContent = packsGeral;
-    document.getElementById('totalSemDesconto').textContent = formatoBRL(totalGeral);
+    document.getElementById('totalSemDesconto').textContent = formatoBRL(subGeral);
     document.getElementById('descontoAplicado').textContent = descontoAtual + "%";
     document.getElementById('totalComDesconto').textContent = formatoBRL(totalFinal);
-    document.getElementById('comissaoValor').textContent = formatoBRL(totalFinal * 0.10);
+    document.getElementById('comissaoValor').textContent = formatoBRL(valorComissao);
+    
     atualizarMaterial();
 }
 
@@ -68,7 +71,7 @@ function atualizarMaterial() {
         if (p.id === 'fuzil') pol += packs * 115;
         car += packs * 250;
     });
-    document.getElementById('materialCalc').textContent = `🧨 Pólvoras: ${pol} | 🐚 Cartuchos: ${car}`;
+    document.getElementById('materialCalc').innerHTML = `🧨 Pólvoras: <strong>${pol}</strong> | 🐚 Cartuchos: <strong>${car}</strong>`;
 }
 
 function gerarDetalhes() {
@@ -80,14 +83,15 @@ function gerarDetalhes() {
     return detalhes;
 }
 
-// ENVIO PARA O DISCORD
+// FINALIZAR E ENVIAR
 document.getElementById('confirmarRegistro').addEventListener('click', async () => {
     const btn = document.getElementById('confirmarRegistro');
     const detalhes = gerarDetalhes();
     if (!detalhes) return alert("Adicione munições!");
 
-    btn.disabled = true; btn.innerText = "⏳ Enviando...";
+    btn.disabled = true; btn.innerText = "⏳ Gravando...";
     const situacao = document.getElementById('situacao').value;
+
     const dados = {
         comprador: document.getElementById('nomeComprador').value || "Não informado",
         membro: document.getElementById('membro').value || "Não informado",
@@ -95,15 +99,17 @@ document.getElementById('confirmarRegistro').addEventListener('click', async () 
         comissao: document.getElementById('comissaoValor').textContent,
         desconto: descontoAtual + "%",
         detalhes: detalhes,
-        materiais: document.getElementById('materialCalc').textContent
+        materiais: document.getElementById('materialCalc').innerText
     };
 
     try {
-        const res = await fetch(URL_CONTADOR_GLOBAL, { method: 'POST', body: JSON.stringify(dados) });
-        const id = "#" + (await res.text()).padStart(4, '0');
+        const response = await fetch(URL_CONTADOR_GLOBAL, { method: 'POST', body: JSON.stringify(dados) });
+        const numID = await response.text();
+        const idPedido = "#" + numID.padStart(4, '0');
 
         const embedEnc = {
-            title: `📋 REGISTRO DE ENCOMENDA ${id}`, color: 22185,
+            title: `📋 REGISTRO DE ENCOMENDA ${idPedido}`,
+            color: 34857,
             fields: [
                 { name: "👤 Comprador", value: dados.comprador, inline: true },
                 { name: "🛠️ Membro", value: dados.membro, inline: true },
@@ -115,35 +121,39 @@ document.getElementById('confirmarRegistro').addEventListener('click', async () 
         };
 
         await fetch(webhooks.encomenda, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ embeds: [embedEnc] }) });
-        if (situacao.includes('✅')) await dispararLogsFinais(id, dados, situacao);
 
-        alert(`✅ Pedido ${id} enviado!`);
+        if (situacao.includes('✅')) await dispararLogsFinais(idPedido, dados, situacao);
+
+        alert(`✅ Pedido ${idPedido} enviado!`);
         location.reload();
     } catch (e) { alert("Erro ao enviar."); btn.disabled = false; }
 });
 
-// BUSCA E ATUALIZAÇÃO (CORRIGIDO)
+// ATUALIZAR STATUS (BUSCA)
 document.getElementById('btnUpdateStatus').addEventListener('click', async () => {
-    const idNum = document.getElementById('updateNumPedido').value.replace('#', '');
+    const inputVal = document.getElementById('updateNumPedido').value;
+    const idLimpo = inputVal.replace('#', '').replace(/^0+/, '');
     const situ = document.getElementById('updateSituacao').value;
     const btn = document.getElementById('btnUpdateStatus');
 
-    if (!idNum) return alert("Digite o número!");
+    if (!idLimpo) return alert("Digite o número do pedido!");
     btn.disabled = true; btn.innerText = "🔍 Buscando...";
 
     try {
-        const response = await fetch(`${URL_CONTADOR_GLOBAL}?id=${idNum}`);
-        const text = await response.text();
-        
-        if (text === "não encontrado") {
+        const res = await fetch(`${URL_CONTADOR_GLOBAL}?id=${idLimpo}`);
+        const data = await res.json();
+
+        if (data === "erro") {
             alert("❌ Pedido não encontrado na planilha!");
-        } else {
-            const data = JSON.parse(text);
-            if (situ.includes('✅')) await dispararLogsFinais("#" + idNum.padStart(4, '0'), data, situ);
+        } else if (situ.includes('✅')) {
+            await dispararLogsFinais("#" + idLimpo.padStart(4, '0'), data, situ);
             alert("✅ Status Atualizado!");
             location.reload();
+        } else {
+            alert("Status alterado.");
+            location.reload();
         }
-    } catch (e) { alert("Erro ao buscar dados na planilha."); }
+    } catch (e) { alert("Erro ao buscar dados."); }
     finally { btn.disabled = false; btn.innerText = "Confirmar Atualização"; }
 });
 
@@ -171,7 +181,7 @@ async function dispararLogsFinais(id, dados, situacao) {
     await fetch(webhooks.comissao, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ embeds: [embedCom] }) });
 }
 
-// ABAS E INTERFACE
+// INTERFACE
 document.querySelectorAll('.tab').forEach(btn => {
     btn.addEventListener('click', () => {
         descontoAtual = Number(btn.dataset.desconto);
@@ -184,10 +194,16 @@ document.querySelectorAll('.tab').forEach(btn => {
     });
 });
 
-document.getElementById('btnAbrirForm').addEventListener('click', () => { document.getElementById('formUpdate').classList.add('hidden'); document.getElementById('formEncomenda').classList.toggle('hidden'); });
-document.getElementById('btnToggleUpdate').addEventListener('click', () => { document.getElementById('formEncomenda').classList.add('hidden'); document.getElementById('formUpdate').classList.toggle('hidden'); });
+document.getElementById('btnAbrirForm').addEventListener('click', () => {
+    document.getElementById('formUpdate').classList.add('hidden');
+    document.getElementById('formEncomenda').classList.toggle('hidden');
+});
+
+document.getElementById('btnToggleUpdate').addEventListener('click', () => {
+    document.getElementById('formEncomenda').classList.add('hidden');
+    document.getElementById('formUpdate').classList.toggle('hidden');
+});
+
 document.getElementById('limparOrcamento').addEventListener('click', () => location.reload());
 
 renderTabela();
-document.getElementById('info-parceria').textContent = parcerias[0];
-document.getElementById('info-parceria').className = "info-parceria alerta-venda";
