@@ -1,5 +1,4 @@
 const PACK_SIZE = 250;
-// URL ATUALIZADA FORNECIDA
 const URL_CONTADOR_GLOBAL = "https://script.google.com/macros/s/AKfycbxAItxhKJpbXutZgnO_7W8KK7ABhsgn9rGAzF2E-QWYBjRCj614MXU-YDOLLKDQrtZXjQ/exec";
 
 const produtos = [
@@ -44,32 +43,37 @@ function calcular() {
         const packs = Math.ceil(qtd / PACK_SIZE);
         subtotalGeral += packs * p.precoPack;
         packsGeral += packs;
-        polTotal += packs * p.pol; // 65, 85 ou 115 por pack
+        polTotal += packs * p.pol;
         carTotal += packs * p.car;
         document.getElementById(`packs-${p.id}`).textContent = packs;
         document.getElementById(`subtotal-${p.id}`).textContent = formatoBRL(packs * p.precoPack);
     });
 
-    const final = subtotalGeral * (1 - descontoAtual / 100);
+    const totalFinal = subtotalGeral * (1 - descontoAtual / 100);
     document.getElementById('totalSemDesconto').textContent = formatoBRL(subtotalGeral);
     document.getElementById('descontoAplicado').textContent = descontoAtual + "%";
-    document.getElementById('totalComDesconto').textContent = formatoBRL(final);
-    document.getElementById('comissaoValor').textContent = formatoBRL(final * 0.10); // 10%
+    document.getElementById('totalComDesconto').textContent = formatoBRL(totalFinal);
+    document.getElementById('comissaoValor').textContent = formatoBRL(totalFinal * 0.10); // Comissão 10%
     document.getElementById('totalPacks').textContent = packsGeral;
     document.getElementById('materialCalc').innerHTML = `🧨 Pólvoras: <strong>${polTotal}</strong> | 🐚 Cartuchos: <strong>${carTotal}</strong>`;
 }
 
-// FINALIZAR E ENVIAR
-document.getElementById('confirmarRegistro').addEventListener('click', async () => {
-    const btn = document.getElementById('confirmarRegistro');
+// GERA AS "CAIXINHAS" INDIVIDUAIS NA EMBED
+function gerarDetalhes() {
     let detalhes = "";
     produtos.forEach(p => {
         const q = Number(document.getElementById(`qtd-${p.id}`).value) || 0;
         if (q > 0) detalhes += `🔹 **${p.nome.replace("Munição de ", "")}:** ${q} un.\n`;
     });
+    return detalhes;
+}
 
+// BOTÃO FINALIZAR E ENVIAR
+document.getElementById('confirmarRegistro').addEventListener('click', async () => {
+    const detalhes = gerarDetalhes();
     if (!detalhes) return alert("Selecione as munições!");
-    btn.disabled = true; btn.innerText = "⏳ Gravando...";
+    const btn = document.getElementById('confirmarRegistro');
+    btn.disabled = true; btn.innerText = "⏳ Enviando...";
 
     const situacao = document.getElementById('situacao').value;
     const dados = {
@@ -99,12 +103,34 @@ document.getElementById('confirmarRegistro').addEventListener('click', async () 
         };
 
         await fetch(webhooks.encomenda, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ embeds: [embedEnc] }) });
-        
         if (situacao.includes('✅')) await dispararLogsFinais(id, dados, situacao);
-
         alert(`✅ Pedido ${id} enviado!`);
         location.reload();
-    } catch (e) { alert("Erro ao enviar."); btn.disabled = false; btn.innerText = "Finalizar e Enviar"; }
+    } catch (e) { alert("Erro ao enviar."); btn.disabled = false; }
+});
+
+// BOTÃO ATUALIZAR STATUS
+document.getElementById('btnUpdateStatus').addEventListener('click', async () => {
+    const idInput = document.getElementById('updateNumPedido').value;
+    const idLimpo = idInput.replace('#', '').replace(/^0+/, '');
+    const situ = document.getElementById('updateSituacao').value;
+    if (!idLimpo) return alert("Digite o número do pedido!");
+    const btn = document.getElementById('btnUpdateStatus');
+    btn.disabled = true; btn.innerText = "🔍 Buscando...";
+
+    try {
+        const res = await fetch(`${URL_CONTADOR_GLOBAL}?id=${idLimpo}`);
+        const data = await res.json();
+        if (data === "erro") return alert("Pedido não encontrado na planilha!");
+        
+        if (situ.includes('✅')) {
+            await dispararLogsFinais("#" + idLimpo.padStart(4, '0'), data, situ);
+            alert("✅ Status Atualizado e Logs Enviados!");
+        } else {
+            alert("Status alterado.");
+        }
+        location.reload();
+    } catch (e) { alert("Erro ao buscar dados."); btn.disabled = false; }
 });
 
 async function dispararLogsFinais(id, dados, situacao) {
@@ -132,7 +158,7 @@ async function dispararLogsFinais(id, dados, situacao) {
     await fetch(webhooks.comissao, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ embeds: [embedCom] }) });
 }
 
-// CONTROLE DE ABAS E INTERFACE
+// CONTROLE DE INTERFACE (TABS E FORMS)
 document.querySelectorAll('.tab').forEach(btn => {
     btn.addEventListener('click', () => {
         descontoAtual = Number(btn.dataset.desconto);
@@ -141,7 +167,7 @@ document.querySelectorAll('.tab').forEach(btn => {
         const info = document.getElementById('info-parceria');
         info.textContent = parcerias[descontoAtual];
         info.className = `info-parceria ${descontoAtual === 0 ? 'alerta-venda' : 'info-venda'}`;
-        calcular();
+        calcular(); 
     });
 });
 
