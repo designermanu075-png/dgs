@@ -16,7 +16,13 @@
             <section class="card-table">
                 <table>
                     <thead>
-                        <tr><th>Produto</th><th>Preço Pack</th><th>Qtd. Munições</th><th>Total Packs</th><th>Subtotal</th></tr>
+                        <tr>
+                            <th>Produto</th>
+                            <th>Preço Pack</th>
+                            <th>Qtd. Munições</th>
+                            <th>Total Packs</th>
+                            <th>Subtotal</th>
+                        </tr>
                     </thead>
                     <tbody id="linhas"></tbody>
                 </table>
@@ -59,13 +65,13 @@
             </div>
 
             <div id="formUpdate" class="form-card hidden">
-                <h3>🔄 Atualizar Status</h3>
-                <input type="text" id="updateNumPedido" placeholder="Ex: 0007">
+                <h3>🔄 Atualizar Pedido</h3>
+                <input type="text" id="updateNumPedido" placeholder="Número do Pedido (Ex: 0007)">
                 <select id="updateSituacao">
                     <option>✅ Entregues</option>
                     <option>🔫 Falta entregar</option>
                 </select>
-                <button id="btnUpdateStatus" class="btn-primary">Confirmar Atualização</button>
+                <button id="btnUpdateStatus" class="btn-primary">Atualizar no Discord</button>
             </div>
         </aside>
     </div>

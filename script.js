@@ -19,7 +19,7 @@ const parcerias = {
     30: "🤝 Parcerias 30%: Tropa da Russia, Golden"
 };
 
-const imgDGS = "https://cdn.discordapp.com/attachments/1191888158795771934/1474355625847685224/NO_DINHEIRO_SUJO_30_4.png?ex=69998c2d&is=69983aad&hm=f02638f1272fabdcc06ca6580ab76e5e8ce3c9580d8ec0535dcb2faaef703c31&";
+const imgDGS = "https://cdn.discordapp.com/attachments/1191888158795771934/1474355625847685224/NO_DINHEIRO_SUJO_30_4.png";
 
 let descontoAtual = 0;
 const formatoBRL = v => v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
@@ -36,33 +36,33 @@ function renderTabela() {
 }
 
 function calcular() {
-    let subGeral = 0;
+    let subtotalGeral = 0;
     let polTotal = 0;
     let carTotal = 0;
-    let materialTexto = "";
+    let packsGeral = 0;
 
     produtos.forEach(p => {
         const qtd = Number(document.getElementById(`qtd-${p.id}`).value) || 0;
         const packs = Math.ceil(qtd / PACK_SIZE);
-        const subItem = packs * p.precoPack;
+        const subtotalItem = packs * p.precoPack;
         
-        subGeral += subItem;
-        
-        // Cálculo de Materiais por Pack
-        const pol = packs * p.pol;
-        const car = packs * p.car;
-        polTotal += pol;
-        carTotal += car;
+        subtotalGeral += subtotalItem;
+        packsGeral += packs;
+        polTotal += packs * p.pol;
+        carTotal += packs * p.car;
 
         document.getElementById(`packs-${p.id}`).textContent = packs;
-        document.getElementById(`subtotal-${p.id}`).textContent = formatoBRL(subItem);
+        document.getElementById(`subtotal-${p.id}`).textContent = formatoBRL(subtotalItem);
     });
 
-    const totalFinal = subGeral * (1 - descontoAtual / 100);
-    document.getElementById('totalSemDesconto').textContent = formatoBRL(subGeral);
-    document.getElementById('descontoAplicado').textContent = descontoAtual + "%";
+    const totalFinal = subtotalGeral * (1 - descontoAtual / 100);
+    const valorComissao = totalFinal * 0.10;
+
+    document.getElementById('totalPacks').textContent = packsGeral;
+    document.getElementById('totalSemDesconto').textContent = formatoBRL(subtotalGeral);
+    document.getElementById('descontoAplicado').textContent = `${descontoAtual}%`;
     document.getElementById('totalComDesconto').textContent = formatoBRL(totalFinal);
-    document.getElementById('comissaoValor').textContent = formatoBRL(totalFinal * 0.10);
+    document.getElementById('comissaoValor').textContent = formatoBRL(valorComissao);
     
     document.getElementById('materialCalc').innerHTML = `🧨 Pólvoras: <strong>${polTotal}</strong> | 🐚 Cartuchos: <strong>${carTotal}</strong>`;
 }
@@ -76,10 +76,10 @@ function gerarDetalhes() {
     return d;
 }
 
-// REGISTRO
+// Botões de Ação
 document.getElementById('confirmarRegistro').addEventListener('click', async () => {
     const detalhes = gerarDetalhes();
-    if (!detalhes) return alert("Adicione munições!");
+    if (!detalhes) return alert("Selecione munições!");
     const btn = document.getElementById('confirmarRegistro');
     btn.disabled = true; btn.innerText = "⏳ Enviando...";
 
@@ -114,12 +114,11 @@ document.getElementById('confirmarRegistro').addEventListener('click', async () 
     } catch (e) { alert("Erro ao enviar."); btn.disabled = false; }
 });
 
-// ATUALIZAR
 document.getElementById('btnUpdateStatus').addEventListener('click', async () => {
     const idLimpo = document.getElementById('updateNumPedido').value.replace('#', '').replace(/^0+/, '');
     const situ = document.getElementById('updateSituacao').value;
-    if (!idLimpo) return alert("Digite o número!");
     const btn = document.getElementById('btnUpdateStatus');
+    if (!idLimpo) return alert("Digite o número!");
     btn.disabled = true; btn.innerText = "🔍 Buscando...";
 
     try {
@@ -157,7 +156,7 @@ async function dispararLogsFinais(id, dados, situacao) {
     await fetch(webhooks.comissao, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ embeds: [embedCom] }) });
 }
 
-// TABS GATILHO DE CÁLCULO
+// Tabs
 document.querySelectorAll('.tab').forEach(btn => {
     btn.addEventListener('click', () => {
         descontoAtual = Number(btn.dataset.desconto);
@@ -166,7 +165,7 @@ document.querySelectorAll('.tab').forEach(btn => {
         const info = document.getElementById('info-parceria');
         info.textContent = parcerias[descontoAtual];
         info.className = `info-parceria ${descontoAtual === 0 ? 'alerta-venda' : 'info-venda'}`;
-        calcular(); // Recalcula na hora ao trocar a aba
+        calcular();
     });
 });
 
