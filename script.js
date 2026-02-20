@@ -13,12 +13,6 @@ const webhooks = {
     comissao: "https://discord.com/api/webhooks/1474356194046120162/HOQyAtwa5jK9gvtzgVEVggUCgPSUwJr1HP-1PNfHhNqBr-eu2xpc-BK9myhemRCY0b6h"
 };
 
-const parcerias = {
-    0: "⚠️ Atenção: Não vender para pessoal de pista ou CPF munições de calibre maior que pistola.",
-    20: "🤝 Parcerias 20%: Medellin, Cartel, Egito",
-    30: "🤝 Parcerias 30%: Tropa da Russia, Golden"
-};
-
 const imgDGS = "https://cdn.discordapp.com/attachments/1191888158795771934/1474355625847685224/NO_DINHEIRO_SUJO_30_4.png?ex=69998c2d&is=69983aad&hm=f02638f1272fabdcc06ca6580ab76e5e8ce3c9580d8ec0535dcb2faaef703c31&";
 
 let descontoAtual = 0;
@@ -69,6 +63,20 @@ function calcular() {
     });
     document.getElementById('materialCalc').innerHTML = `🧨 Pólvoras: <strong>${polvora}</strong> | 🐚 Cartuchos: <strong>${cartucho}</strong>`;
 }
+
+// Alternância de cards na Sidebar
+document.getElementById('btnAbrirForm').addEventListener('click', () => {
+    document.getElementById('formUpdate').classList.add('hidden');
+    document.getElementById('formEncomenda').classList.toggle('hidden');
+});
+
+document.getElementById('btnToggleUpdate').addEventListener('click', () => {
+    document.getElementById('formEncomenda').classList.add('hidden');
+    document.getElementById('formUpdate').classList.toggle('hidden');
+});
+
+// Registrar Encomenda
+document.getElementById('confirmarRegistro').addEventListener('click', enviarParaDiscord);
 
 async function enviarParaDiscord() {
     const btn = document.getElementById('confirmarRegistro');
@@ -136,6 +144,7 @@ async function enviarParaDiscord() {
     }
 }
 
+// Atualizar Status via Busca Global
 document.getElementById('btnUpdateStatus').addEventListener('click', async () => {
     const idRaw = document.getElementById('updateNumPedido').value.replace('#', '').replace(/^0+/, '');
     const situ = document.getElementById('updateSituacao').value;
@@ -153,13 +162,14 @@ document.getElementById('btnUpdateStatus').addEventListener('click', async () =>
         } else if (situ.includes('✅')) {
             await dispararLogsFinais("#" + idRaw.padStart(4, '0'), data, situ);
             alert("✅ Status atualizado e logs financeiros enviados!");
+            document.getElementById('formUpdate').classList.add('hidden');
         } else {
-            alert("Status atualizado (logs financeiros apenas para Entregues).");
+            alert("Status atualizado (Apenas Entregues geram logs financeiros).");
         }
     } catch (e) {
         alert("❌ Erro ao buscar dados.");
     }
-    btn.innerText = "Atualizar no Discord";
+    btn.innerText = "Confirmar Atualização";
 });
 
 async function dispararLogsFinais(numPedido, dados, situacao) {
@@ -194,27 +204,30 @@ async function dispararLogsFinais(numPedido, dados, situacao) {
     await fetch(webhooks.registroVenda, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ embeds: [embedRegistro] }) });
 }
 
-// Event Listeners Adicionais
+// Interface e Parcerias
+const parcerias = {
+    0: "⚠️ Atenção: Não vender para pessoal de pista ou CPF munições de calibre maior que pistola.",
+    20: "🤝 Parcerias 20%: Medellin, Cartel, Egito",
+    30: "🤝 Parcerias 30%: Tropa da Russia, Golden"
+};
+
 document.querySelectorAll('.tab').forEach(btn => {
     btn.addEventListener('click', () => {
         descontoAtual = Number(btn.dataset.desconto);
         document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
         btn.classList.add('active');
         const infoEl = document.getElementById('info-parceria');
-        infoEl.textContent = parcerias[descontoAtual];
+        infoEl.textContent = parcerias[descontoAtual] || "";
         infoEl.className = `info-parceria ${descontoAtual === 0 ? 'alerta-venda' : 'info-venda'}`;
         calcular();
     });
-});
-
-document.getElementById('btnAbrirForm').addEventListener('click', () => {
-    document.getElementById('formEncomenda').classList.toggle('hidden');
 });
 
 document.getElementById('limparOrcamento').addEventListener('click', () => {
     produtos.forEach(p => document.getElementById(`qtd-${p.id}`).value = 0);
     descontoAtual = 0;
     document.getElementById('formEncomenda').classList.add('hidden');
+    document.getElementById('formUpdate').classList.add('hidden');
     calcular();
 });
 

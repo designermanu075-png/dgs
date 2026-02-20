@@ -55,7 +55,9 @@
                     <div class="commission-box">
                         <div class="stat-row"><span>Sua Comissão:</span> <strong id="comissaoValor">R$ 0,00</strong></div>
                     </div>
+                    
                     <button id="btnAbrirForm" class="btn-register-trigger">📦 Registrar encomenda</button>
+                    <button id="btnToggleUpdate" class="btn-secondary-outline">🔄 Atualizar pedido existente</button>
                 </div>
 
                 <div id="formEncomenda" class="form-card hidden">
@@ -83,18 +85,20 @@
                     <button id="confirmarRegistro" class="btn-primary">Finalizar e Enviar</button>
                 </div>
 
-                <div class="form-card status-update-box">
+                <div id="formUpdate" class="form-card status-update-box hidden">
                     <h3>🔄 Atualizar Status</h3>
                     <div class="input-group">
-                        <input type="text" id="updateNumPedido" placeholder="Nº do Pedido (Ex: 0005)">
+                        <label>Número do Pedido</label>
+                        <input type="text" id="updateNumPedido" placeholder="Ex: 0001">
                     </div>
                     <div class="input-group">
+                        <label>Nova Situação</label>
                         <select id="updateSituacao">
                             <option>✅ Entregues</option>
                             <option>🔫 Falta entregar</option>
                         </select>
                     </div>
-                    <button id="btnUpdateStatus" class="btn-secondary-outline">Atualizar no Discord</button>
+                    <button id="btnUpdateStatus" class="btn-primary">Confirmar Atualização</button>
                 </div>
             </div>
         </aside>
