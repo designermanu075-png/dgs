@@ -11,9 +11,9 @@
             <header class="header">
                 <div>
                     <h1>Arsenal System <span class="badge">DGS</span></h1>
-                    <p>Gerenciamento de munições e produção profissional</p>
+                    <p>Gestão Profissional de Armamento</p>
                 </div>
-                <button id="limparOrcamento" class="btn-clear-header">🗑️ Limpar Orçamento</button>
+                <button id="limparOrcamento" class="btn-clear-header">🗑️ Limpar Tudo</button>
             </header>
 
             <section class="card-table">
@@ -44,17 +44,17 @@
         <aside class="sidebar">
             <div class="sticky-card">
                 <div class="summary-card">
-                    <h3>Resumo do Pedido</h3>
+                    <h3>Resumo Financeiro</h3>
                     <div class="stat-row"><span>Total Packs:</span> <strong id="totalPacks">0</strong></div>
                     <div class="stat-row"><span>Subtotal:</span> <span id="totalSemDesconto">R$ 0,00</span></div>
                     <div class="stat-row discount"><span>Desconto:</span> <span id="descontoAplicado">0%</span></div>
                     <div class="stat-row total"><span>Total Final:</span> <strong id="totalComDesconto">R$ 0,00</strong></div>
                     <div class="commission-box">
-                        <div class="stat-row"><span>Sua Comissão (10%):</span> <strong id="comissaoValor">R$ 0,00</strong></div>
+                        <div class="stat-row"><span>Comissão (10%):</span> <strong id="comissaoValor">R$ 0,00</strong></div>
                     </div>
                     
-                    <button id="btnAbrirForm" class="btn-register-trigger">📦 Registrar encomenda</button>
-                    <button id="btnToggleUpdate" class="btn-secondary-outline">🔄 Atualizar pedido existente</button>
+                    <button id="btnAbrirForm" class="btn-register-trigger">📦 Registrar Encomenda</button>
+                    <button id="btnToggleUpdate" class="btn-secondary-outline">🔄 Atualizar Pedido</button>
                 </div>
 
                 <div id="formEncomenda" class="form-card hidden">
@@ -75,10 +75,7 @@
                             <option>✅ Entregues</option>
                         </select>
                     </div>
-                    <div class="material-info">
-                        <h4>Materiais Necessários</h4>
-                        <p id="materialCalc">🧨 Pólvoras: 0 | 🐚 Cartuchos: 0</p>
-                    </div>
+                    <div class="material-info" id="materialCalc">🧨 Pólvoras: 0 | 🐚 Cartuchos: 0</div>
                     <button id="confirmarRegistro" class="btn-primary">Finalizar e Enviar</button>
                 </div>
 

@@ -26,7 +26,6 @@ const formatoBRL = v => v.toLocaleString('pt-BR', { style: 'currency', currency:
 
 function renderTabela() {
     const tabelaCorpo = document.getElementById('linhas');
-    if (!tabelaCorpo) return;
     tabelaCorpo.innerHTML = produtos.map(p => `
         <tr>
             <td><strong>${p.nome}</strong></td>
@@ -74,8 +73,7 @@ function atualizarMaterial() {
 }
 
 function gerarDetalhesProdutos() {
-    let detalhes = "";
-    let nomesMuni = [];
+    let detalhes = ""; let nomesMuni = [];
     produtos.forEach(p => {
         const qtd = Number(document.getElementById(`qtd-${p.id}`).value) || 0;
         if (qtd > 0) {
@@ -86,13 +84,13 @@ function gerarDetalhesProdutos() {
     return { string: detalhes, nomes: nomesMuni.join(", ") };
 }
 
-// BOTÃO FINALIZAR E ENVIAR
+// BOTÕES DE REGISTRO
 document.getElementById('confirmarRegistro').addEventListener('click', enviarParaDiscord);
 
 async function enviarParaDiscord() {
     const btn = document.getElementById('confirmarRegistro');
     const detalhes = gerarDetalhesProdutos();
-    if (!detalhes.string) return alert("Selecione pelo menos uma munição!");
+    if (!detalhes.string) return alert("Adicione munições!");
 
     btn.disabled = true; btn.innerText = "⏳ Enviando...";
     const situacao = document.getElementById('situacao').value;
@@ -115,7 +113,7 @@ async function enviarParaDiscord() {
 
         const embedEnc = {
             title: `📋 REGISTRO DE ENCOMENDA ${idPedido}`,
-            color: 22185, // Cor azul escura
+            color: 34857, // Azul DGS
             fields: [
                 { name: "👤 Comprador", value: dados.comprador, inline: true },
                 { name: "🛠️ Membro", value: dados.membro, inline: true },
@@ -129,19 +127,14 @@ async function enviarParaDiscord() {
 
         await fetch(webhooks.encomenda, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ embeds: [embedEnc] }) });
 
-        if (situacao.includes('✅')) {
-            await dispararLogsFinais(idPedido, dados, situacao);
-        }
+        if (situacao.includes('✅')) await dispararLogsFinais(idPedido, dados, situacao);
 
         alert(`✅ Pedido ${idPedido} enviado!`);
         location.reload();
-    } catch (e) {
-        alert("❌ Erro ao enviar.");
-        btn.disabled = false; btn.innerText = "Finalizar e Enviar";
-    }
+    } catch (e) { alert("Erro ao enviar."); btn.disabled = false; }
 }
 
-// BOTÃO CONFIRMAR ATUALIZAÇÃO
+// BOTÃO DE ATUALIZAÇÃO
 document.getElementById('btnUpdateStatus').addEventListener('click', async () => {
     const idNum = document.getElementById('updateNumPedido').value.replace('#', '');
     const situ = document.getElementById('updateSituacao').value;
@@ -155,21 +148,15 @@ document.getElementById('btnUpdateStatus').addEventListener('click', async () =>
         const data = await res.json();
         if (data !== "erro" && situ.includes('✅')) {
             await dispararLogsFinais("#" + idNum.padStart(4, '0'), data, situ);
-            alert("✅ Status Atualizado e Logs Enviados!");
+            alert("✅ Status Atualizado!");
             location.reload();
-        } else {
-            alert("Status atualizado!");
-            location.reload();
-        }
-    } catch (e) { 
-        alert("Erro ao buscar pedido."); 
-        btn.disabled = false; btn.innerText = "Confirmar Atualização";
-    }
+        } else { alert("Status atualizado!"); location.reload(); }
+    } catch (e) { alert("Erro ao buscar dados."); btn.disabled = false; }
 });
 
 async function dispararLogsFinais(id, dados, situacao) {
     const embedReg = {
-        title: `✅ VENDA REGISTRADA ${id}`, color: 43266, // Cor verde
+        title: `✅ VENDA REGISTRADA ${id}`, color: 43266, // Verde
         fields: [
             { name: "👤 Comprador", value: dados.comprador, inline: true },
             { name: "🛠️ Membro", value: dados.membro, inline: true },
@@ -178,32 +165,28 @@ async function dispararLogsFinais(id, dados, situacao) {
         ]
     };
     const embedCom = {
-        title: `💸 COMISSÃO GERADA ${id}`, color: 4170239, // Cor azul claro
+        title: `💸 COMISSÃO GERADA ${id}`, color: 4170239, // Azul Claro
         fields: [
             { name: "👤 Comprador", value: dados.comprador, inline: true },
             { name: "🛠️ Membro", value: dados.membro, inline: true },
             { name: "💰 Total Venda", value: dados.total, inline: true },
             { name: "💸 Comissão", value: dados.comissao, inline: true },
-            { name: "📉 Desconto", value: dados.desconto || "0%", inline: true },
-            { name: "🚦 Status", value: situacao, inline: true }
+            { name: "📉 Desconto", value: dados.desconto || "0%", inline: true }
         ]
     };
-
     await fetch(webhooks.registroVenda, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ embeds: [embedReg] }) });
     await fetch(webhooks.comissao, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ embeds: [embedCom] }) });
 }
 
-// ABAS DE DESCONTO
+// CONTROLE DE INTERFACE
 document.querySelectorAll('.tab').forEach(btn => {
     btn.addEventListener('click', () => {
         descontoAtual = Number(btn.dataset.desconto);
         document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
         btn.classList.add('active');
         const infoEl = document.getElementById('info-parceria');
-        if (infoEl) {
-            infoEl.textContent = parcerias[descontoAtual] || "";
-            infoEl.className = `info-parceria ${descontoAtual === 0 ? 'alerta-venda' : 'info-venda'}`;
-        }
+        infoEl.textContent = parcerias[descontoAtual] || "";
+        infoEl.className = `info-parceria ${descontoAtual === 0 ? 'alerta-venda' : 'info-venda'}`;
         calcular();
     });
 });
@@ -221,3 +204,5 @@ document.getElementById('btnToggleUpdate').addEventListener('click', () => {
 document.getElementById('limparOrcamento').addEventListener('click', () => location.reload());
 
 renderTabela();
+document.getElementById('info-parceria').textContent = parcerias[0];
+document.getElementById('info-parceria').className = "info-parceria alerta-venda";
