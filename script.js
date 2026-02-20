@@ -48,6 +48,7 @@ function calcular() {
         document.getElementById(`packs-${p.id}`).textContent = packs;
         document.getElementById(`subtotal-${p.id}`).textContent = formatoBRL(subtotal);
     });
+    
     const totalFinal = totalGeral * (1 - descontoAtual / 100);
     const valorComissao = totalFinal * 0.10; 
 
@@ -56,6 +57,7 @@ function calcular() {
     document.getElementById('descontoAplicado').textContent = `${descontoAtual}%`;
     document.getElementById('totalComDesconto').textContent = formatoBRL(totalFinal);
     document.getElementById('comissaoValor').textContent = formatoBRL(valorComissao);
+    
     atualizarMaterial();
 }
 
@@ -72,6 +74,7 @@ function atualizarMaterial() {
     document.getElementById('materialCalc').textContent = `🧨 Pólvoras: ${pol} | 🐚 Cartuchos: ${car}`;
 }
 
+// LOGICA DE CAIXINHAS INDIVIDUAIS (image_df20a7.png)
 function gerarDetalhesProdutos() {
     let detalhes = ""; let nomesMuni = [];
     produtos.forEach(p => {
@@ -84,13 +87,11 @@ function gerarDetalhesProdutos() {
     return { string: detalhes, nomes: nomesMuni.join(", ") };
 }
 
-// BOTÕES DE REGISTRO
-document.getElementById('confirmarRegistro').addEventListener('click', enviarParaDiscord);
-
-async function enviarParaDiscord() {
+// FINALIZAR E ENVIAR
+document.getElementById('confirmarRegistro').addEventListener('click', async () => {
     const btn = document.getElementById('confirmarRegistro');
     const detalhes = gerarDetalhesProdutos();
-    if (!detalhes.string) return alert("Adicione munições!");
+    if (!detalhes.string) return alert("Selecione munições!");
 
     btn.disabled = true; btn.innerText = "⏳ Enviando...";
     const situacao = document.getElementById('situacao').value;
@@ -113,7 +114,7 @@ async function enviarParaDiscord() {
 
         const embedEnc = {
             title: `📋 REGISTRO DE ENCOMENDA ${idPedido}`,
-            color: 34857, // Azul DGS
+            color: 22185, // Decimal para #0056a9
             fields: [
                 { name: "👤 Comprador", value: dados.comprador, inline: true },
                 { name: "🛠️ Membro", value: dados.membro, inline: true },
@@ -125,16 +126,16 @@ async function enviarParaDiscord() {
             image: { url: imgDGS }
         };
 
-        await fetch(webhooks.encomenda, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ embeds: [embedEnc] }) });
+        await fetch(webhooks.encomenda, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ content: "Nova Encomenda!", embeds: [embedEnc] }) });
 
         if (situacao.includes('✅')) await dispararLogsFinais(idPedido, dados, situacao);
 
         alert(`✅ Pedido ${idPedido} enviado!`);
         location.reload();
     } catch (e) { alert("Erro ao enviar."); btn.disabled = false; }
-}
+});
 
-// BOTÃO DE ATUALIZAÇÃO
+// ATUALIZAR STATUS
 document.getElementById('btnUpdateStatus').addEventListener('click', async () => {
     const idNum = document.getElementById('updateNumPedido').value.replace('#', '');
     const situ = document.getElementById('updateSituacao').value;
@@ -151,12 +152,12 @@ document.getElementById('btnUpdateStatus').addEventListener('click', async () =>
             alert("✅ Status Atualizado!");
             location.reload();
         } else { alert("Status atualizado!"); location.reload(); }
-    } catch (e) { alert("Erro ao buscar dados."); btn.disabled = false; }
+    } catch (e) { alert("Erro ao buscar pedido."); btn.disabled = false; }
 });
 
 async function dispararLogsFinais(id, dados, situacao) {
     const embedReg = {
-        title: `✅ VENDA REGISTRADA ${id}`, color: 43266, // Verde
+        title: `✅ VENDA REGISTRADA ${id}`, color: 43266, // Decimal para #00a902
         fields: [
             { name: "👤 Comprador", value: dados.comprador, inline: true },
             { name: "🛠️ Membro", value: dados.membro, inline: true },
@@ -165,7 +166,7 @@ async function dispararLogsFinais(id, dados, situacao) {
         ]
     };
     const embedCom = {
-        title: `💸 COMISSÃO GERADA ${id}`, color: 4170239, // Azul Claro
+        title: `💸 COMISSÃO GERADA ${id}`, color: 4170239, // Decimal para #3fa1ff
         fields: [
             { name: "👤 Comprador", value: dados.comprador, inline: true },
             { name: "🛠️ Membro", value: dados.membro, inline: true },
@@ -178,7 +179,7 @@ async function dispararLogsFinais(id, dados, situacao) {
     await fetch(webhooks.comissao, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ embeds: [embedCom] }) });
 }
 
-// CONTROLE DE INTERFACE
+// LISTENERS INTERFACE
 document.querySelectorAll('.tab').forEach(btn => {
     btn.addEventListener('click', () => {
         descontoAtual = Number(btn.dataset.desconto);
