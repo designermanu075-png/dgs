@@ -1,5 +1,5 @@
 const PACK_SIZE = 250;
-const URL_CONTADOR_GLOBAL = "https://script.google.com/macros/s/AKfycbxaOoXnuCWiedqgG5XFr4EWCNTr5_ohr6pfavnqfdG0FAR270mRE02N9OXYi1Ec-GpX4g/exec";
+const URL_CONTADOR_GLOBAL = "https://script.google.com/macros/s/AKfycbx5I8DIB1pQ0e6VOA3Nol7e04Iyp1f-muy400JB9zmO5GDA8vlh3otrMTfrfCMUs2VYIA/exec";
 
 const produtos = [
     { id: 'pistola', nome: 'Munição de Pistola', precoPack: 32500 },
@@ -14,7 +14,7 @@ const webhooks = {
 };
 
 const parcerias = {
-    0: "⚠️ Atenção: Não vender para pessoal de pista ou CPF munições de calibre maior que pistola.",
+    0: "⚠️ Atenção: Não vender calibres maiores que pistola para CPF.",
     20: "🤝 Parcerias 20%: Medellin, Cartel, Egito",
     30: "🤝 Parcerias 30%: Tropa da Russia, Golden"
 };
@@ -39,25 +39,22 @@ function renderTabela() {
 }
 
 function calcular() {
-    let packsTotal = 0; let totalGeral = 0;
+    let totalGeral = 0; let packsGeral = 0;
     produtos.forEach(p => {
         const qtd = Number(document.getElementById(`qtd-${p.id}`).value) || 0;
         const packs = Math.ceil(qtd / PACK_SIZE);
         const subtotal = packs * p.precoPack;
-        packsTotal += packs; totalGeral += subtotal;
+        totalGeral += subtotal; packsGeral += packs;
         document.getElementById(`packs-${p.id}`).textContent = packs;
         document.getElementById(`subtotal-${p.id}`).textContent = formatoBRL(subtotal);
     });
     
     const totalFinal = totalGeral * (1 - descontoAtual / 100);
-    const valorComissao = totalFinal * 0.10; 
-
-    document.getElementById('totalPacks').textContent = packsTotal;
+    document.getElementById('totalPacks').textContent = packsGeral;
     document.getElementById('totalSemDesconto').textContent = formatoBRL(totalGeral);
-    document.getElementById('descontoAplicado').textContent = `${descontoAtual}%`;
+    document.getElementById('descontoAplicado').textContent = descontoAtual + "%";
     document.getElementById('totalComDesconto').textContent = formatoBRL(totalFinal);
-    document.getElementById('comissaoValor').textContent = formatoBRL(valorComissao);
-    
+    document.getElementById('comissaoValor').textContent = formatoBRL(totalFinal * 0.10);
     atualizarMaterial();
 }
 
@@ -74,134 +71,121 @@ function atualizarMaterial() {
     document.getElementById('materialCalc').textContent = `🧨 Pólvoras: ${pol} | 🐚 Cartuchos: ${car}`;
 }
 
-// LOGICA DE CAIXINHAS INDIVIDUAIS (image_df20a7.png)
-function gerarDetalhesProdutos() {
-    let detalhes = ""; let nomesMuni = [];
+function gerarDetalhes() {
+    let detalhes = "";
     produtos.forEach(p => {
         const qtd = Number(document.getElementById(`qtd-${p.id}`).value) || 0;
-        if (qtd > 0) {
-            detalhes += `🔹 **${p.nome.replace("Munição de ", "")}:** ${qtd} un.\n`;
-            nomesMuni.push(p.nome.replace("Munição de ", ""));
-        }
+        if (qtd > 0) detalhes += `🔹 **${p.nome.replace("Munição de ", "")}:** ${qtd} un.\n`;
     });
-    return { string: detalhes, nomes: nomesMuni.join(", ") };
+    return detalhes;
 }
 
-// FINALIZAR E ENVIAR
+// ENVIO PARA O DISCORD
 document.getElementById('confirmarRegistro').addEventListener('click', async () => {
     const btn = document.getElementById('confirmarRegistro');
-    const detalhes = gerarDetalhesProdutos();
-    if (!detalhes.string) return alert("Selecione munições!");
+    const detalhes = gerarDetalhes();
+    if (!detalhes) return alert("Adicione munições!");
 
     btn.disabled = true; btn.innerText = "⏳ Enviando...";
     const situacao = document.getElementById('situacao').value;
-
     const dados = {
         comprador: document.getElementById('nomeComprador').value || "Não informado",
         membro: document.getElementById('membro').value || "Não informado",
         total: document.getElementById('totalComDesconto').textContent,
         comissao: document.getElementById('comissaoValor').textContent,
         desconto: descontoAtual + "%",
-        materiais: document.getElementById('materialCalc').textContent,
-        produtos: detalhes.nomes,
-        detalhes: detalhes.string
+        detalhes: detalhes,
+        materiais: document.getElementById('materialCalc').textContent
     };
 
     try {
-        const response = await fetch(URL_CONTADOR_GLOBAL, { method: 'POST', body: JSON.stringify(dados) });
-        const numID = await response.text();
-        const idPedido = "#" + numID.padStart(4, '0');
+        const res = await fetch(URL_CONTADOR_GLOBAL, { method: 'POST', body: JSON.stringify(dados) });
+        const id = "#" + (await res.text()).padStart(4, '0');
 
         const embedEnc = {
-            title: `📋 REGISTRO DE ENCOMENDA ${idPedido}`,
-            color: 22185, // Decimal para #0056a9
+            title: `📋 REGISTRO DE ENCOMENDA ${id}`, color: 22185,
             fields: [
                 { name: "👤 Comprador", value: dados.comprador, inline: true },
                 { name: "🛠️ Membro", value: dados.membro, inline: true },
                 { name: "💰 Total", value: dados.total, inline: true },
-                { name: "📦 Detalhes", value: detalhes.string, inline: false },
-                { name: "🚦 Status", value: situacao, inline: true },
-                { name: "🧨 Materiais", value: dados.materiais, inline: true }
+                { name: "📦 Detalhes", value: detalhes, inline: false },
+                { name: "🚦 Status", value: situacao, inline: true }
             ],
             image: { url: imgDGS }
         };
 
-        await fetch(webhooks.encomenda, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ content: "Nova Encomenda!", embeds: [embedEnc] }) });
+        await fetch(webhooks.encomenda, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ embeds: [embedEnc] }) });
+        if (situacao.includes('✅')) await dispararLogsFinais(id, dados, situacao);
 
-        if (situacao.includes('✅')) await dispararLogsFinais(idPedido, dados, situacao);
-
-        alert(`✅ Pedido ${idPedido} enviado!`);
+        alert(`✅ Pedido ${id} enviado!`);
         location.reload();
     } catch (e) { alert("Erro ao enviar."); btn.disabled = false; }
 });
 
-// ATUALIZAR STATUS
+// BUSCA E ATUALIZAÇÃO (CORRIGIDO)
 document.getElementById('btnUpdateStatus').addEventListener('click', async () => {
     const idNum = document.getElementById('updateNumPedido').value.replace('#', '');
     const situ = document.getElementById('updateSituacao').value;
     const btn = document.getElementById('btnUpdateStatus');
 
-    if (!idNum) return alert("Digite o número do pedido!");
+    if (!idNum) return alert("Digite o número!");
     btn.disabled = true; btn.innerText = "🔍 Buscando...";
 
     try {
-        const res = await fetch(`${URL_CONTADOR_GLOBAL}?id=${idNum}`);
-        const data = await res.json();
-        if (data !== "erro" && situ.includes('✅')) {
-            await dispararLogsFinais("#" + idNum.padStart(4, '0'), data, situ);
+        const response = await fetch(`${URL_CONTADOR_GLOBAL}?id=${idNum}`);
+        const text = await response.text();
+        
+        if (text === "não encontrado") {
+            alert("❌ Pedido não encontrado na planilha!");
+        } else {
+            const data = JSON.parse(text);
+            if (situ.includes('✅')) await dispararLogsFinais("#" + idNum.padStart(4, '0'), data, situ);
             alert("✅ Status Atualizado!");
             location.reload();
-        } else { alert("Status atualizado!"); location.reload(); }
-    } catch (e) { alert("Erro ao buscar pedido."); btn.disabled = false; }
+        }
+    } catch (e) { alert("Erro ao buscar dados na planilha."); }
+    finally { btn.disabled = false; btn.innerText = "Confirmar Atualização"; }
 });
 
 async function dispararLogsFinais(id, dados, situacao) {
     const embedReg = {
-        title: `✅ VENDA REGISTRADA ${id}`, color: 43266, // Decimal para #00a902
+        title: `✅ VENDA REGISTRADA ${id}`, color: 43266,
         fields: [
             { name: "👤 Comprador", value: dados.comprador, inline: true },
             { name: "🛠️ Membro", value: dados.membro, inline: true },
-            { name: "📦 Detalhes", value: dados.detalhes || dados.produtos, inline: false },
+            { name: "📦 Detalhes", value: dados.detalhes, inline: false },
             { name: "💰 Total", value: dados.total, inline: true }
         ]
     };
     const embedCom = {
-        title: `💸 COMISSÃO GERADA ${id}`, color: 4170239, // Decimal para #3fa1ff
+        title: `💸 COMISSÃO GERADA ${id}`, color: 4170239,
         fields: [
             { name: "👤 Comprador", value: dados.comprador, inline: true },
             { name: "🛠️ Membro", value: dados.membro, inline: true },
             { name: "💰 Total Venda", value: dados.total, inline: true },
             { name: "💸 Comissão", value: dados.comissao, inline: true },
-            { name: "📉 Desconto", value: dados.desconto || "0%", inline: true }
+            { name: "📉 Desconto", value: dados.desconto, inline: true }
         ]
     };
     await fetch(webhooks.registroVenda, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ embeds: [embedReg] }) });
     await fetch(webhooks.comissao, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ embeds: [embedCom] }) });
 }
 
-// LISTENERS INTERFACE
+// ABAS E INTERFACE
 document.querySelectorAll('.tab').forEach(btn => {
     btn.addEventListener('click', () => {
         descontoAtual = Number(btn.dataset.desconto);
         document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
         btn.classList.add('active');
         const infoEl = document.getElementById('info-parceria');
-        infoEl.textContent = parcerias[descontoAtual] || "";
+        infoEl.textContent = parcerias[descontoAtual];
         infoEl.className = `info-parceria ${descontoAtual === 0 ? 'alerta-venda' : 'info-venda'}`;
         calcular();
     });
 });
 
-document.getElementById('btnAbrirForm').addEventListener('click', () => {
-    document.getElementById('formUpdate').classList.add('hidden');
-    document.getElementById('formEncomenda').classList.toggle('hidden');
-});
-
-document.getElementById('btnToggleUpdate').addEventListener('click', () => {
-    document.getElementById('formEncomenda').classList.add('hidden');
-    document.getElementById('formUpdate').classList.toggle('hidden');
-});
-
+document.getElementById('btnAbrirForm').addEventListener('click', () => { document.getElementById('formUpdate').classList.add('hidden'); document.getElementById('formEncomenda').classList.toggle('hidden'); });
+document.getElementById('btnToggleUpdate').addEventListener('click', () => { document.getElementById('formEncomenda').classList.add('hidden'); document.getElementById('formUpdate').classList.toggle('hidden'); });
 document.getElementById('limparOrcamento').addEventListener('click', () => location.reload());
 
 renderTabela();

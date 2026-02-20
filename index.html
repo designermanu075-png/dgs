@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <title>Sistema de Arsenal - DGS</title>
+    <title>DRAGONS</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -10,8 +10,8 @@
         <div class="main-content">
             <header class="header">
                 <div>
-                    <h1>Arsenal System <span class="badge">DGS</span></h1>
-                    <p>Gestão Profissional de Vendas</p>
+                    <h1>SISTEMA INTERNO<span class="badge">DGS</span></h1>
+                    <p>Controle de Vendas e Produção</p>
                 </div>
                 <button id="limparOrcamento" class="btn-clear-header">🗑️ Limpar Tudo</button>
             </header>
@@ -45,12 +45,11 @@
             <div class="sticky-card">
                 <div class="summary-card">
                     <h3>Resumo Financeiro</h3>
-                    <div class="stat-row"><span>Total Packs:</span> <strong id="totalPacks">0</strong></div>
                     <div class="stat-row"><span>Subtotal:</span> <span id="totalSemDesconto">R$ 0,00</span></div>
                     <div class="stat-row discount"><span>Desconto:</span> <span id="descontoAplicado">0%</span></div>
                     <div class="stat-row total"><span>Total Final:</span> <strong id="totalComDesconto">R$ 0,00</strong></div>
                     <div class="commission-box">
-                        <div class="stat-row"><span>Comissão (10%):</span> <strong id="comissaoValor">R$ 0,00</strong></div>
+                        <div class="stat-row"><span>Sua Comissão (10%):</span> <strong id="comissaoValor">R$ 0,00</strong></div>
                     </div>
                     
                     <button id="btnAbrirForm" class="btn-register-trigger">📦 Registrar Encomenda</button>
@@ -61,7 +60,7 @@
                     <h3>Registro de Venda</h3>
                     <div class="input-group">
                         <label>Comprador / FAC</label>
-                        <input type="text" id="nomeComprador" placeholder="Ex: Tropa da Russia">
+                        <input type="text" id="nomeComprador" placeholder="Ex: Vagos">
                     </div>
                     <div class="input-group">
                         <label>Membro Responsável</label>
