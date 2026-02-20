@@ -47,6 +47,8 @@
                 <div class="commission-box">
                     <span>Sua Comissão (10%):</span> <strong id="comissaoValor">R$ 0,00</strong>
                 </div>
+                <div class="stat-row" style="margin-top:10px;"><span>Total Packs:</span> <strong id="totalPacks">0</strong></div>
+                
                 <button id="btnAbrirForm" class="btn-register-trigger">📦 Registrar Encomenda</button>
                 <button id="btnToggleUpdate" class="btn-secondary-outline">🔄 Atualizar pedido existente</button>
             </div>
@@ -65,13 +67,9 @@
             </div>
 
             <div id="formUpdate" class="form-card hidden">
-                <h3>🔄 Atualizar Pedido</h3>
-                <input type="text" id="updateNumPedido" placeholder="Número do Pedido (Ex: 0007)">
-                <select id="updateSituacao">
-                    <option>✅ Entregues</option>
-                    <option>🔫 Falta entregar</option>
-                </select>
-                <button id="btnUpdateStatus" class="btn-primary">Atualizar no Discord</button>
+                <h3>🔄 Atualizar Status</h3>
+                <input type="text" id="updateNumPedido" placeholder="Ex: 0001">
+                <button id="btnUpdateStatus" class="btn-primary">Confirmar Atualização</button>
             </div>
         </aside>
     </div>
