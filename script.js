@@ -22,7 +22,7 @@ const parcerias = {
 let descontoAtual = 0;
 const formatoBRL = v => v.toLocaleString('pt-BR', { minimumFractionDigits: 2 });
 
-// --- CÁLCULOS E INTERFACE ---
+// --- LÓGICA DE CÁLCULO ---
 function renderTabela() {
     const tabelaCorpo = document.getElementById('linhas');
     tabelaCorpo.innerHTML = produtos.map(p => `
@@ -56,12 +56,7 @@ function calcular() {
     document.getElementById('descontoAplicado').textContent = `${descontoAtual}%`;
     document.getElementById('totalComDesconto').textContent = `R$ ${formatoBRL(totalFinal)}`;
     document.getElementById('comissaoValor').textContent = `R$ ${formatoBRL(valorComissao)}`;
-    document.getElementById('comissaoPorcentagem').textContent = (porcComissao * 100) + "%";
     
-    atualizarMaterial();
-}
-
-function atualizarMaterial() {
     let polvora = 0; let cartucho = 0;
     produtos.forEach(p => {
         const qtd = Number(document.getElementById(`qtd-${p.id}`).value) || 0;
@@ -74,7 +69,7 @@ function atualizarMaterial() {
     document.getElementById('materialCalc').innerHTML = `🧨 Pólvoras: <strong>${polvora}</strong> | 🐚 Cartuchos: <strong>${cartucho}</strong>`;
 }
 
-// --- LOGICA DE REGISTRO E PLANILHA ---
+// --- LOGICA DE REGISTRO ---
 document.getElementById('confirmarRegistro').addEventListener('click', enviarParaDiscord);
 
 async function enviarParaDiscord() {
@@ -111,7 +106,7 @@ async function enviarParaDiscord() {
                 { name: "🚦 Status", value: situacao, inline: false },
                 { name: "📦 Materiais**", value: dados.materiais, inline: false }
             ],
-            image: { url: "https://i.imgur.com/V9rP8L7.png" },
+            image: { url: "https://i.imgur.com/V9rP8L7.png" }, // Link direto da imagem (image_d36963.png)
             timestamp: new Date()
         };
 
@@ -124,34 +119,34 @@ async function enviarParaDiscord() {
             await dispararLogsFinais(numPedido, dados, situacao);
         }
 
-        alert(`✅ Pedido ${numPedido} registrado!`);
+        alert(`✅ Pedido ${numPedido} registrado com sucesso!`);
         btn.disabled = false; btn.innerText = "Finalizar e Enviar";
     } catch (e) {
-        alert("❌ Erro ao salvar dados na planilha.");
+        alert("❌ Erro ao salvar dados na planilha. Verifique se o Script Google está publicado corretamente.");
         btn.disabled = false;
     }
 }
 
-// --- LOGICA DE ATUALIZAÇÃO ---
+// --- LOGICA DE ATUALIZAÇÃO (image_d36963.png) ---
 document.getElementById('btnUpdateStatus').addEventListener('click', async () => {
     const idRaw = document.getElementById('updateNumPedido').value.replace('#', '').replace(/^0+/, '');
     const situ = document.getElementById('updateSituacao').value;
     const btn = document.getElementById('btnUpdateStatus');
 
     if (!idRaw) return alert("Digite o número do pedido!");
-    btn.innerText = "🔍 Buscando...";
+    btn.innerText = "🔍 Buscando dados...";
 
     try {
         const response = await fetch(`${URL_CONTADOR_GLOBAL}?id=${idRaw}`);
         const data = await response.json();
 
         if (data === "erro") {
-            alert("❌ Pedido não encontrado!");
+            alert("❌ Pedido não encontrado na planilha!");
         } else if (situ.includes('✅')) {
             await dispararLogsFinais("#" + idRaw.padStart(4, '0'), data, situ);
             alert("✅ Status atualizado e logs financeiros enviados!");
         } else {
-            alert("Aviso: Apenas o status 'Entregues' gera logs automáticos.");
+            alert("Status 'Falta entregar' não gera logs de comissão.");
         }
     } catch (e) {
         alert("❌ Erro de conexão com a planilha.");
@@ -179,7 +174,8 @@ async function dispararLogsFinais(numPedido, dados, situacao) {
         fields: [
             { name: "👤 Comprador", value: dados.comprador, inline: true },
             { name: "🛠️ Membro", value: dados.membro, inline: true },
-            { name: "📦 Produto", value: dados.produtos, inline: true },
+            { name: "📦 Produto", value: dados.produtos.split(': ')[0], inline: true },
+            { name: "📊 Quantidade", value: dados.produtos.split(': ')[1] || "---", inline: true },
             { name: "💰 Total Venda", value: `**R$ ${dados.total}**`, inline: true },
             { name: "📉 Desconto", value: dados.desconto, inline: true },
             { name: "🚦 Status", value: situacao, inline: false }
@@ -190,7 +186,7 @@ async function dispararLogsFinais(numPedido, dados, situacao) {
     await fetch(webhooks.registroVenda, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ embeds: [embedRegistro] }) });
 }
 
-// --- INTERFACE (ABAS E LIMPAR) ---
+// --- INTERFACE ---
 document.querySelectorAll('.tab').forEach(btn => {
     btn.addEventListener('click', () => {
         descontoAtual = Number(btn.dataset.desconto);

@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Encomendas DGS</title>
+    <title>Arsenal System - DGS</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -11,8 +11,8 @@
         <div class="main-content">
             <header class="header">
                 <div>
-                    <h1>Sistema Interno<span class="badge">DGS</span></h1>
-                    <p>Gerenciamento de munições e produção</p>
+                    <h1>Arsenal System <span class="badge">FiveM</span></h1>
+                    <p>Gerenciamento de munições e produção profissional</p>
                 </div>
                 <button id="limparOrcamento" class="btn-clear-header">
                     <span>🗑️</span> Limpar Orçamento
@@ -54,7 +54,7 @@
                     <div class="stat-row total"><span>Total Final:</span> <strong id="totalComDesconto">R$ 0,00</strong></div>
                     <div class="commission-box">
                         <div class="stat-row">
-                            <span>Sua Comissão (<small id="comissaoPorcentagem">5%</small>):</span>
+                            <span>Sua Comissão:</span>
                             <strong id="comissaoValor">R$ 0,00</strong>
                         </div>
                     </div>
@@ -65,7 +65,7 @@
                     <h3>Registro de Venda</h3>
                     <div class="input-group">
                         <label>Comprador / FAC</label>
-                        <input type="text" id="nomeComprador" placeholder="Ex: Vagos / Nome">
+                        <input type="text" id="nomeComprador" placeholder="Ex: Tropa da Russia">
                     </div>
                     <div class="input-group">
                         <label>Membro Responsável</label>
@@ -88,17 +88,17 @@
 
                 <div class="form-card status-update-box">
                     <h3>🔄 Atualizar Status</h3>
-                    <p>Puxa os dados do pedido e gera logs de venda/comissão.</p>
+                    <p>Finalize um pedido sem relançar o orçamento.</p>
                     <div class="input-group">
-                        <input type="text" id="updateNumPedido" placeholder="Número do Pedido (Ex: 0005)">
+                        <input type="text" id="updateNumPedido" placeholder="Nº do Pedido (Ex: 0005)">
                     </div>
                     <div class="input-group">
                         <select id="updateSituacao">
-                            <option>🔫 Falta entregar</option>
                             <option>✅ Entregues</option>
+                            <option>🔫 Falta entregar</option>
                         </select>
                     </div>
-                    <button id="btnUpdateStatus" class="btn-primary-outline">Atualizar no Discord</button>
+                    <button id="btnUpdateStatus" class="btn-secondary-outline">Atualizar no Discord</button>
                 </div>
             </div>
         </aside>
