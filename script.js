@@ -1,5 +1,5 @@
 const PACK_SIZE = 250;
-const URL_CONTADOR_GLOBAL = "https://script.google.com/macros/s/AKfycbzI9a9KT65n2UJfqAX0VNODxfVYXrwseepdgJ97F27aodSlqnnLm_tvycIMFQGuI1ImQQ/exec";
+const URL_CONTADOR_GLOBAL = "https://script.google.com/macros/s/AKfycbwn7l8c38TohLme2CH7yTEoUmGT2hp4jeh4oOqV-09YKxRc4WsUQGSQ9Vqk5_T6Zc3CRQ/exec"; // <--- COLE A URL AQUI
 
 const produtos = [
     { id: 'pistola', nome: 'Munição de Pistola', precoPack: 32500 },
@@ -52,6 +52,10 @@ function calcular() {
     document.getElementById('totalComDesconto').textContent = `R$ ${formatoBRL(totalFinal)}`;
     document.getElementById('comissaoValor').textContent = `R$ ${formatoBRL(valorComissao)}`;
     
+    atualizarMaterial();
+}
+
+function atualizarMaterial() {
     let polvora = 0; let cartucho = 0;
     produtos.forEach(p => {
         const qtd = Number(document.getElementById(`qtd-${p.id}`).value) || 0;
@@ -64,18 +68,6 @@ function calcular() {
     document.getElementById('materialCalc').innerHTML = `🧨 Pólvoras: <strong>${polvora}</strong> | 🐚 Cartuchos: <strong>${cartucho}</strong>`;
 }
 
-// Alternância de cards na Sidebar
-document.getElementById('btnAbrirForm').addEventListener('click', () => {
-    document.getElementById('formUpdate').classList.add('hidden');
-    document.getElementById('formEncomenda').classList.toggle('hidden');
-});
-
-document.getElementById('btnToggleUpdate').addEventListener('click', () => {
-    document.getElementById('formEncomenda').classList.add('hidden');
-    document.getElementById('formUpdate').classList.toggle('hidden');
-});
-
-// Registrar Encomenda
 document.getElementById('confirmarRegistro').addEventListener('click', enviarParaDiscord);
 
 async function enviarParaDiscord() {
@@ -144,7 +136,6 @@ async function enviarParaDiscord() {
     }
 }
 
-// Atualizar Status via Busca Global
 document.getElementById('btnUpdateStatus').addEventListener('click', async () => {
     const idRaw = document.getElementById('updateNumPedido').value.replace('#', '').replace(/^0+/, '');
     const situ = document.getElementById('updateSituacao').value;
@@ -161,15 +152,12 @@ document.getElementById('btnUpdateStatus').addEventListener('click', async () =>
             alert("❌ Pedido não encontrado!");
         } else if (situ.includes('✅')) {
             await dispararLogsFinais("#" + idRaw.padStart(4, '0'), data, situ);
-            alert("✅ Status atualizado e logs financeiros enviados!");
-            document.getElementById('formUpdate').classList.add('hidden');
-        } else {
-            alert("Status atualizado (Apenas Entregues geram logs financeiros).");
+            alert("✅ Status atualizado!");
         }
     } catch (e) {
         alert("❌ Erro ao buscar dados.");
     }
-    btn.innerText = "Confirmar Atualização";
+    btn.innerText = "Atualizar no Discord";
 });
 
 async function dispararLogsFinais(numPedido, dados, situacao) {
@@ -204,7 +192,16 @@ async function dispararLogsFinais(numPedido, dados, situacao) {
     await fetch(webhooks.registroVenda, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ embeds: [embedRegistro] }) });
 }
 
-// Interface e Parcerias
+document.getElementById('btnAbrirForm').addEventListener('click', () => {
+    document.getElementById('formUpdate').classList.add('hidden');
+    document.getElementById('formEncomenda').classList.toggle('hidden');
+});
+
+document.getElementById('btnToggleUpdate').addEventListener('click', () => {
+    document.getElementById('formEncomenda').classList.add('hidden');
+    document.getElementById('formUpdate').classList.toggle('hidden');
+});
+
 const parcerias = {
     0: "⚠️ Atenção: Não vender para pessoal de pista ou CPF munições de calibre maior que pistola.",
     20: "🤝 Parcerias 20%: Medellin, Cartel, Egito",
@@ -232,5 +229,3 @@ document.getElementById('limparOrcamento').addEventListener('click', () => {
 });
 
 renderTabela(); calcular();
-document.getElementById('info-parceria').textContent = parcerias[0];
-document.getElementById('info-parceria').className = "info-parceria alerta-venda";

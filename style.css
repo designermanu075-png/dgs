@@ -47,3 +47,42 @@ td { padding: 15px 0; border-top: 1px solid var(--border); }
 .input-group label { display: block; font-size: 0.85rem; color: var(--text-dim); margin-bottom: 5px; }
 .input-group input, .input-group select { width: 100%; padding: 12px; background: #0f172a; border: 1px solid var(--border); color: white; border-radius: 6px; }
 .material-info { background: #0f172a; padding: 10px 15px; border-radius: 8px; margin-bottom: 15px; border: 1px solid var(--border); }
+
+.btn-primary {
+    width: 100%;
+    padding: 12px;
+    background: var(--accent);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+.btn-secondary-outline {
+    width: 100%;
+    margin-top: 10px;
+    padding: 10px;
+    background: transparent;
+    color: var(--text-dim);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+.material-info {
+    background: #0f172a;
+    padding: 10px 15px;
+    border-radius: 8px;
+    margin-bottom: 15px;
+    border: 1px solid var(--border);
+}
+
+.total { 
+    border-top: 1px solid var(--border); 
+    padding-top: 12px; 
+    margin-top: 12px; 
+}
