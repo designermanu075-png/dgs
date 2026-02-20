@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Arsenal System - FiveM</title>
+    <title>Encomendas DGS</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -11,8 +11,8 @@
         <div class="main-content">
             <header class="header">
                 <div>
-                    <h1>Arsenal System <span class="badge">FiveM</span></h1>
-                    <p>Gerenciamento de munições e produção profissional</p>
+                    <h1>Sistema Interno<span class="badge">DGS</span></h1>
+                    <p>Gerenciamento de munições e produção</p>
                 </div>
                 <button id="limparOrcamento" class="btn-clear-header">
                     <span>🗑️</span> Limpar Orçamento
@@ -50,9 +50,8 @@
                     <h3>Resumo do Pedido</h3>
                     <div class="stat-row"><span>Total Packs:</span> <strong id="totalPacks">0</strong></div>
                     <div class="stat-row"><span>Subtotal:</span> <span id="totalSemDesconto">R$ 0,00</span></div>
-                    <div class="stat-row discount"><span>Desconto Aplicado:</span> <span id="descontoAplicado">0%</span></div>
+                    <div class="stat-row discount"><span>Desconto:</span> <span id="descontoAplicado">0%</span></div>
                     <div class="stat-row total"><span>Total Final:</span> <strong id="totalComDesconto">R$ 0,00</strong></div>
-                    
                     <div class="commission-box">
                         <div class="stat-row">
                             <span>Sua Comissão (<small id="comissaoPorcentagem">5%</small>):</span>
@@ -85,6 +84,21 @@
                         <p id="materialCalc">🧨 Pólvoras: 0 | 🐚 Cartuchos: 0</p>
                     </div>
                     <button id="confirmarRegistro" class="btn-primary">Finalizar e Enviar</button>
+                </div>
+
+                <div class="form-card status-update-box">
+                    <h3>🔄 Atualizar Status</h3>
+                    <p>Puxa os dados do pedido e gera logs de venda/comissão.</p>
+                    <div class="input-group">
+                        <input type="text" id="updateNumPedido" placeholder="Número do Pedido (Ex: 0005)">
+                    </div>
+                    <div class="input-group">
+                        <select id="updateSituacao">
+                            <option>🔫 Falta entregar</option>
+                            <option>✅ Entregues</option>
+                        </select>
+                    </div>
+                    <button id="btnUpdateStatus" class="btn-primary-outline">Atualizar no Discord</button>
                 </div>
             </div>
         </aside>
