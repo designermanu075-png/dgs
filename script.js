@@ -1,5 +1,5 @@
 const PACK_SIZE = 250;
-const URL_CONTADOR_GLOBAL = "https://script.google.com/macros/s/AKfycbyR-v-AaJrCaXNFumF0uI1r0aZyyZvSrjzanJCQ9W8e0tHQOzXUn-e1Szl-QpO4FCQp/exec";
+const URL_CONTADOR_GLOBAL = "https://script.google.com/macros/s/AKfycbxaOoXnuCWiedqgG5XFr4EWCNTr5_ohr6pfavnqfdG0FAR270mRE02N9OXYi1Ec-GpX4g/exec";
 
 const produtos = [
     { id: 'pistola', nome: 'Munição de Pistola', precoPack: 32500 },
@@ -26,6 +26,7 @@ const formatoBRL = v => v.toLocaleString('pt-BR', { style: 'currency', currency:
 
 function renderTabela() {
     const tabelaCorpo = document.getElementById('linhas');
+    if (!tabelaCorpo) return;
     tabelaCorpo.innerHTML = produtos.map(p => `
         <tr>
             <td><strong>${p.nome}</strong></td>
@@ -48,7 +49,6 @@ function calcular() {
         document.getElementById(`packs-${p.id}`).textContent = packs;
         document.getElementById(`subtotal-${p.id}`).textContent = formatoBRL(subtotal);
     });
-    
     const totalFinal = totalGeral * (1 - descontoAtual / 100);
     const valorComissao = totalFinal * 0.10; 
 
@@ -57,7 +57,6 @@ function calcular() {
     document.getElementById('descontoAplicado').textContent = `${descontoAtual}%`;
     document.getElementById('totalComDesconto').textContent = formatoBRL(totalFinal);
     document.getElementById('comissaoValor').textContent = formatoBRL(valorComissao);
-    
     atualizarMaterial();
 }
 
@@ -74,7 +73,6 @@ function atualizarMaterial() {
     document.getElementById('materialCalc').textContent = `🧨 Pólvoras: ${pol} | 🐚 Cartuchos: ${car}`;
 }
 
-// LÓGICA DE CAIXINHAS INDIVIDUAIS (cite: image_df20a7)
 function gerarDetalhesProdutos() {
     let detalhes = "";
     let nomesMuni = [];
@@ -88,12 +86,15 @@ function gerarDetalhesProdutos() {
     return { string: detalhes, nomes: nomesMuni.join(", ") };
 }
 
+// BOTÃO FINALIZAR E ENVIAR
+document.getElementById('confirmarRegistro').addEventListener('click', enviarParaDiscord);
+
 async function enviarParaDiscord() {
     const btn = document.getElementById('confirmarRegistro');
     const detalhes = gerarDetalhesProdutos();
     if (!detalhes.string) return alert("Selecione pelo menos uma munição!");
 
-    btn.disabled = true; btn.innerText = "⏳ Gravando...";
+    btn.disabled = true; btn.innerText = "⏳ Enviando...";
     const situacao = document.getElementById('situacao').value;
 
     const dados = {
@@ -114,7 +115,7 @@ async function enviarParaDiscord() {
 
         const embedEnc = {
             title: `📋 REGISTRO DE ENCOMENDA ${idPedido}`,
-            color: 22185, // Decimal para #0056a9
+            color: 22185, // Cor azul escura
             fields: [
                 { name: "👤 Comprador", value: dados.comprador, inline: true },
                 { name: "🛠️ Membro", value: dados.membro, inline: true },
@@ -126,7 +127,7 @@ async function enviarParaDiscord() {
             image: { url: imgDGS }
         };
 
-        await fetch(webhooks.encomenda, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ content: "Nova Encomenda!", embeds: [embedEnc] }) });
+        await fetch(webhooks.encomenda, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ embeds: [embedEnc] }) });
 
         if (situacao.includes('✅')) {
             await dispararLogsFinais(idPedido, dados, situacao);
@@ -135,32 +136,55 @@ async function enviarParaDiscord() {
         alert(`✅ Pedido ${idPedido} enviado!`);
         location.reload();
     } catch (e) {
-        alert("❌ Erro ao salvar dados.");
-        btn.disabled = false;
+        alert("❌ Erro ao enviar.");
+        btn.disabled = false; btn.innerText = "Finalizar e Enviar";
     }
 }
 
+// BOTÃO CONFIRMAR ATUALIZAÇÃO
+document.getElementById('btnUpdateStatus').addEventListener('click', async () => {
+    const idNum = document.getElementById('updateNumPedido').value.replace('#', '');
+    const situ = document.getElementById('updateSituacao').value;
+    const btn = document.getElementById('btnUpdateStatus');
+
+    if (!idNum) return alert("Digite o número do pedido!");
+    btn.disabled = true; btn.innerText = "🔍 Buscando...";
+
+    try {
+        const res = await fetch(`${URL_CONTADOR_GLOBAL}?id=${idNum}`);
+        const data = await res.json();
+        if (data !== "erro" && situ.includes('✅')) {
+            await dispararLogsFinais("#" + idNum.padStart(4, '0'), data, situ);
+            alert("✅ Status Atualizado e Logs Enviados!");
+            location.reload();
+        } else {
+            alert("Status atualizado!");
+            location.reload();
+        }
+    } catch (e) { 
+        alert("Erro ao buscar pedido."); 
+        btn.disabled = false; btn.innerText = "Confirmar Atualização";
+    }
+});
+
 async function dispararLogsFinais(id, dados, situacao) {
     const embedReg = {
-        title: `✅ VENDA REGISTRADA ${id}`, 
-        color: 43266, // Decimal para #00a902
+        title: `✅ VENDA REGISTRADA ${id}`, color: 43266, // Cor verde
         fields: [
             { name: "👤 Comprador", value: dados.comprador, inline: true },
             { name: "🛠️ Membro", value: dados.membro, inline: true },
-            { name: "📦 Detalhes", value: dados.detalhes, inline: false },
-            { name: "📉 Desconto", value: dados.desconto, inline: true },
+            { name: "📦 Detalhes", value: dados.detalhes || dados.produtos, inline: false },
             { name: "💰 Total", value: dados.total, inline: true }
         ]
     };
     const embedCom = {
-        title: `💸 COMISSÃO GERADA ${id}`, 
-        color: 4170239, // Decimal para #3fa1ff
+        title: `💸 COMISSÃO GERADA ${id}`, color: 4170239, // Cor azul claro
         fields: [
             { name: "👤 Comprador", value: dados.comprador, inline: true },
             { name: "🛠️ Membro", value: dados.membro, inline: true },
             { name: "💰 Total Venda", value: dados.total, inline: true },
             { name: "💸 Comissão", value: dados.comissao, inline: true },
-            { name: "📉 Desconto", value: dados.desconto, inline: true },
+            { name: "📉 Desconto", value: dados.desconto || "0%", inline: true },
             { name: "🚦 Status", value: situacao, inline: true }
         ]
     };
@@ -169,18 +193,17 @@ async function dispararLogsFinais(id, dados, situacao) {
     await fetch(webhooks.comissao, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ embeds: [embedCom] }) });
 }
 
-// LISTENERS DAS ABAS E INTERFACE (cite: image_df2f89)
+// ABAS DE DESCONTO
 document.querySelectorAll('.tab').forEach(btn => {
     btn.addEventListener('click', () => {
         descontoAtual = Number(btn.dataset.desconto);
         document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
         btn.classList.add('active');
-        
         const infoEl = document.getElementById('info-parceria');
-        infoEl.textContent = parcerias[descontoAtual] || "";
-        // Muda a classe baseado no desconto (0% = alerta, outros = info)
-        infoEl.className = `info-parceria ${descontoAtual === 0 ? 'alerta-venda' : 'info-venda'}`;
-        
+        if (infoEl) {
+            infoEl.textContent = parcerias[descontoAtual] || "";
+            infoEl.className = `info-parceria ${descontoAtual === 0 ? 'alerta-venda' : 'info-venda'}`;
+        }
         calcular();
     });
 });
@@ -195,27 +218,6 @@ document.getElementById('btnToggleUpdate').addEventListener('click', () => {
     document.getElementById('formUpdate').classList.toggle('hidden');
 });
 
-document.getElementById('btnUpdateStatus').addEventListener('click', async () => {
-    const idNum = document.getElementById('updateNumPedido').value.replace('#', '');
-    const situ = document.getElementById('updateSituacao').value;
-    if (!idNum) return alert("Digite o número do pedido!");
-
-    try {
-        const res = await fetch(`${URL_CONTADOR_GLOBAL}?id=${idNum}`);
-        const data = await res.json();
-        if (data !== "erro" && situ.includes('✅')) {
-            await dispararLogsFinais("#" + idNum.padStart(4, '0'), data, situ);
-            alert("✅ Status Atualizado!");
-            location.reload();
-        } else {
-            alert("Status atualizado!");
-        }
-    } catch (e) { alert("Erro ao buscar dados."); }
-});
-
 document.getElementById('limparOrcamento').addEventListener('click', () => location.reload());
 
-// INICIALIZAÇÃO
 renderTabela();
-document.getElementById('info-parceria').textContent = parcerias[0];
-document.getElementById('info-parceria').className = "info-parceria alerta-venda";
