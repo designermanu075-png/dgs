@@ -2,30 +2,21 @@
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <title>DRAGONS</title>
+    <title>Arsenal System - DGS</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <div class="dashboard">
         <div class="main-content">
             <header class="header">
-                <div>
-                    <h1>SISTEMA INTERNO<span class="badge">DGS</span></h1>
-                    <p>Controle de Vendas e Produção</p>
-                </div>
+                <h1>Arsenal System <span class="badge">DGS</span></h1>
                 <button id="limparOrcamento" class="btn-clear-header">🗑️ Limpar Tudo</button>
             </header>
 
             <section class="card-table">
                 <table>
                     <thead>
-                        <tr>
-                            <th>Produto</th>
-                            <th>Preço Pack</th>
-                            <th>Qtd. Munições</th>
-                            <th>Total Packs</th>
-                            <th>Subtotal</th>
-                        </tr>
+                        <tr><th>Produto</th><th>Preço Pack</th><th>Qtd. Munições</th><th>Total Packs</th><th>Subtotal</th></tr>
                     </thead>
                     <tbody id="linhas"></tbody>
                 </table>
@@ -42,57 +33,39 @@
         </div>
 
         <aside class="sidebar">
-            <div class="sticky-card">
-                <div class="summary-card">
-                    <h3>Resumo Financeiro</h3>
-                    <div class="stat-row"><span>Subtotal:</span> <span id="totalSemDesconto">R$ 0,00</span></div>
-                    <div class="stat-row discount"><span>Desconto:</span> <span id="descontoAplicado">0%</span></div>
-                    <div class="stat-row total"><span>Total Final:</span> <strong id="totalComDesconto">R$ 0,00</strong></div>
-                    <div class="commission-box">
-                        <div class="stat-row"><span>Sua Comissão (10%):</span> <strong id="comissaoValor">R$ 0,00</strong></div>
-                    </div>
-                    
-                    <button id="btnAbrirForm" class="btn-register-trigger">📦 Registrar Encomenda</button>
-                    <button id="btnToggleUpdate" class="btn-secondary-outline">🔄 Atualizar pedido existente</button>
+            <div class="summary-card">
+                <h3>Resumo Financeiro</h3>
+                <div class="stat-row"><span>Subtotal:</span> <span id="totalSemDesconto">R$ 0,00</span></div>
+                <div class="stat-row"><span>Desconto:</span> <span id="descontoAplicado">0%</span></div>
+                <div class="stat-row total"><span>Total Final:</span> <strong id="totalComDesconto">R$ 0,00</strong></div>
+                <div class="commission-box">
+                    <span>Sua Comissão (10%):</span> <strong id="comissaoValor">R$ 0,00</strong>
                 </div>
+                <button id="btnAbrirForm" class="btn-register-trigger">📦 Registrar Encomenda</button>
+                <button id="btnToggleUpdate" class="btn-secondary-outline">🔄 Atualizar pedido existente</button>
+            </div>
 
-                <div id="formEncomenda" class="form-card hidden">
-                    <h3>Registro de Venda</h3>
-                    <div class="input-group">
-                        <label>Comprador / FAC</label>
-                        <input type="text" id="nomeComprador" placeholder="Ex: Vagos">
-                    </div>
-                    <div class="input-group">
-                        <label>Membro Responsável</label>
-                        <input type="text" id="membro" placeholder="Seu nome">
-                    </div>
-                    <div class="input-group">
-                        <label>Situação</label>
-                        <select id="situacao">
-                            <option>🔄 Em andamento</option>
-                            <option>🔫 Falta entregar</option>
-                            <option>✅ Entregues</option>
-                        </select>
-                    </div>
-                    <div class="material-info" id="materialCalc">🧨 Pólvoras: 0 | 🐚 Cartuchos: 0</div>
-                    <button id="confirmarRegistro" class="btn-primary">Finalizar e Enviar</button>
-                </div>
+            <div id="formEncomenda" class="form-card hidden">
+                <h3>Registro de Venda</h3>
+                <input type="text" id="nomeComprador" placeholder="Comprador / FAC">
+                <input type="text" id="membro" placeholder="Membro Responsável">
+                <select id="situacao">
+                    <option>🔄 Em andamento</option>
+                    <option>🔫 Falta entregar</option>
+                    <option>✅ Entregues</option>
+                </select>
+                <div class="material-info" id="materialCalc">🧨 Pólvoras: 0 | 🐚 Cartuchos: 0</div>
+                <button id="confirmarRegistro" class="btn-primary">Finalizar e Enviar</button>
+            </div>
 
-                <div id="formUpdate" class="form-card hidden">
-                    <h3>🔄 Atualizar Status</h3>
-                    <div class="input-group">
-                        <label>Número do Pedido</label>
-                        <input type="text" id="updateNumPedido" placeholder="Ex: 0001">
-                    </div>
-                    <div class="input-group">
-                        <label>Nova Situação</label>
-                        <select id="updateSituacao">
-                            <option>✅ Entregues</option>
-                            <option>🔫 Falta entregar</option>
-                        </select>
-                    </div>
-                    <button id="btnUpdateStatus" class="btn-primary">Confirmar Atualização</button>
-                </div>
+            <div id="formUpdate" class="form-card hidden">
+                <h3>🔄 Atualizar Status</h3>
+                <input type="text" id="updateNumPedido" placeholder="Ex: 0007">
+                <select id="updateSituacao">
+                    <option>✅ Entregues</option>
+                    <option>🔫 Falta entregar</option>
+                </select>
+                <button id="btnUpdateStatus" class="btn-primary">Confirmar Atualização</button>
             </div>
         </aside>
     </div>

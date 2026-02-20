@@ -2,9 +2,9 @@ const PACK_SIZE = 250;
 const URL_CONTADOR_GLOBAL = "https://script.google.com/macros/s/AKfycbxaOoXnuCWiedqgG5XFr4EWCNTr5_ohr6pfavnqfdG0FAR270mRE02N9OXYi1Ec-GpX4g/exec";
 
 const produtos = [
-    { id: 'pistola', nome: 'Munição de Pistola', precoPack: 32500 },
-    { id: 'sub', nome: 'Munição de Sub/SMG', precoPack: 55000 },
-    { id: 'fuzil', nome: 'Munição de Fuzil', precoPack: 85000 }
+    { id: 'pistola', nome: 'Munição de Pistola', precoPack: 32500, pol: 65, car: 250 },
+    { id: 'sub', nome: 'Munição de Sub/SMG', precoPack: 55000, pol: 85, car: 250 },
+    { id: 'fuzil', nome: 'Munição de Fuzil', precoPack: 85000, pol: 115, car: 250 }
 ];
 
 const webhooks = {
@@ -25,72 +25,63 @@ let descontoAtual = 0;
 const formatoBRL = v => v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
 
 function renderTabela() {
-    const tabelaCorpo = document.getElementById('linhas');
-    tabelaCorpo.innerHTML = produtos.map(p => `
+    document.getElementById('linhas').innerHTML = produtos.map(p => `
         <tr>
-            <td><strong>${p.nome}</strong></td>
-            <td>${formatoBRL(p.precoPack)}</td>
+            <td><strong>${p.nome}</strong></td><td>${formatoBRL(p.precoPack)}</td>
             <td><input id="qtd-${p.id}" type="number" min="0" step="50" value="0" class="input-table"></td>
-            <td><span id="packs-${p.id}">0</span></td>
-            <td><span id="subtotal-${p.id}">R$ 0,00</span></td>
+            <td><span id="packs-${p.id}">0</span></td><td><span id="subtotal-${p.id}">R$ 0,00</span></td>
         </tr>
     `).join('');
     produtos.forEach(p => document.getElementById(`qtd-${p.id}`).addEventListener('input', calcular));
 }
 
 function calcular() {
-    let subGeral = 0; let packsGeral = 0;
+    let subGeral = 0;
+    let polTotal = 0;
+    let carTotal = 0;
+    let materialTexto = "";
+
     produtos.forEach(p => {
         const qtd = Number(document.getElementById(`qtd-${p.id}`).value) || 0;
         const packs = Math.ceil(qtd / PACK_SIZE);
         const subItem = packs * p.precoPack;
-        subGeral += subItem; packsGeral += packs;
+        
+        subGeral += subItem;
+        
+        // Cálculo de Materiais por Pack
+        const pol = packs * p.pol;
+        const car = packs * p.car;
+        polTotal += pol;
+        carTotal += car;
+
         document.getElementById(`packs-${p.id}`).textContent = packs;
         document.getElementById(`subtotal-${p.id}`).textContent = formatoBRL(subItem);
     });
-    
-    const totalFinal = subGeral * (1 - descontoAtual / 100);
-    const valorComissao = totalFinal * 0.10;
 
-    document.getElementById('totalPacks').textContent = packsGeral;
+    const totalFinal = subGeral * (1 - descontoAtual / 100);
     document.getElementById('totalSemDesconto').textContent = formatoBRL(subGeral);
     document.getElementById('descontoAplicado').textContent = descontoAtual + "%";
     document.getElementById('totalComDesconto').textContent = formatoBRL(totalFinal);
-    document.getElementById('comissaoValor').textContent = formatoBRL(valorComissao);
+    document.getElementById('comissaoValor').textContent = formatoBRL(totalFinal * 0.10);
     
-    atualizarMaterial();
-}
-
-function atualizarMaterial() {
-    let pol = 0; let car = 0;
-    produtos.forEach(p => {
-        const qtd = Number(document.getElementById(`qtd-${p.id}`).value) || 0;
-        const packs = Math.ceil(qtd / PACK_SIZE);
-        if (p.id === 'pistola') pol += packs * 65;
-        if (p.id === 'sub') pol += packs * 85;
-        if (p.id === 'fuzil') pol += packs * 115;
-        car += packs * 250;
-    });
-    document.getElementById('materialCalc').innerHTML = `🧨 Pólvoras: <strong>${pol}</strong> | 🐚 Cartuchos: <strong>${car}</strong>`;
+    document.getElementById('materialCalc').innerHTML = `🧨 Pólvoras: <strong>${polTotal}</strong> | 🐚 Cartuchos: <strong>${carTotal}</strong>`;
 }
 
 function gerarDetalhes() {
-    let detalhes = "";
+    let d = "";
     produtos.forEach(p => {
-        const qtd = Number(document.getElementById(`qtd-${p.id}`).value) || 0;
-        if (qtd > 0) detalhes += `🔹 **${p.nome.replace("Munição de ", "")}:** ${qtd} un.\n`;
+        const q = Number(document.getElementById(`qtd-${p.id}`).value) || 0;
+        if (q > 0) d += `🔹 **${p.nome.replace("Munição de ", "")}:** ${q} un.\n`;
     });
-    return detalhes;
+    return d;
 }
 
-// REGISTRO DE ENCOMENDA
+// REGISTRO
 document.getElementById('confirmarRegistro').addEventListener('click', async () => {
-    const btn = document.getElementById('confirmarRegistro');
     const detalhes = gerarDetalhes();
-    if (!detalhes) return alert("Selecione munições!");
-
-    btn.disabled = true; btn.innerText = "⏳ Gravando...";
-    const situacao = document.getElementById('situacao').value;
+    if (!detalhes) return alert("Adicione munições!");
+    const btn = document.getElementById('confirmarRegistro');
+    btn.disabled = true; btn.innerText = "⏳ Enviando...";
 
     const dados = {
         comprador: document.getElementById('nomeComprador').value || "Não informado",
@@ -103,61 +94,42 @@ document.getElementById('confirmarRegistro').addEventListener('click', async () 
     };
 
     try {
-        const response = await fetch(URL_CONTADOR_GLOBAL, { method: 'POST', body: JSON.stringify(dados) });
-        const numID = await response.text();
-        const idPedido = "#" + numID.padStart(4, '0');
-
-        const embedEnc = {
-            title: `📋 REGISTRO DE ENCOMENDA ${idPedido}`,
-            color: 34857,
+        const res = await fetch(URL_CONTADOR_GLOBAL, { method: 'POST', body: JSON.stringify(dados) });
+        const id = "#" + (await res.text()).padStart(4, '0');
+        const embed = {
+            title: `📋 REGISTRO DE ENCOMENDA ${id}`, color: 34857,
             fields: [
                 { name: "👤 Comprador", value: dados.comprador, inline: true },
                 { name: "🛠️ Membro", value: dados.membro, inline: true },
                 { name: "💰 Total", value: dados.total, inline: true },
                 { name: "📦 Detalhes", value: detalhes, inline: false },
-                { name: "🚦 Status", value: situacao, inline: true }
-            ],
-            image: { url: imgDGS }
+                { name: "🚦 Status", value: document.getElementById('situacao').value, inline: true },
+                { name: "🧨 Materiais", value: dados.materiais, inline: true }
+            ], image: { url: imgDGS }
         };
-
-        await fetch(webhooks.encomenda, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ embeds: [embedEnc] }) });
-
-        if (situacao.includes('✅')) await dispararLogsFinais(idPedido, dados, situacao);
-
-        alert(`✅ Pedido ${idPedido} enviado!`);
+        await fetch(webhooks.encomenda, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ embeds: [embed] }) });
+        if (document.getElementById('situacao').value.includes('✅')) await dispararLogsFinais(id, dados, "✅ Entregues");
+        alert(`✅ Pedido ${id} enviado!`);
         location.reload();
     } catch (e) { alert("Erro ao enviar."); btn.disabled = false; }
 });
 
-// ATUALIZAR STATUS (BUSCA INTELIGENTE)
+// ATUALIZAR
 document.getElementById('btnUpdateStatus').addEventListener('click', async () => {
-    const inputVal = document.getElementById('updateNumPedido').value;
-    // Limpa o ID para buscar apenas o número bruto (Ex: 0007 vira 7)
-    const idLimpo = inputVal.replace('#', '').replace(/^0+/, '');
+    const idLimpo = document.getElementById('updateNumPedido').value.replace('#', '').replace(/^0+/, '');
     const situ = document.getElementById('updateSituacao').value;
+    if (!idLimpo) return alert("Digite o número!");
     const btn = document.getElementById('btnUpdateStatus');
-
-    if (!idLimpo) return alert("Digite o número do pedido!");
     btn.disabled = true; btn.innerText = "🔍 Buscando...";
 
     try {
         const res = await fetch(`${URL_CONTADOR_GLOBAL}?id=${idLimpo}`);
         const data = await res.json();
-
-        if (data === "erro") {
-            alert("❌ Pedido não encontrado na planilha!");
-        } else {
-            // Se encontrar, dispara os logs se o status for Entregues
-            if (situ.includes('✅')) {
-                await dispararLogsFinais("#" + idLimpo.padStart(4, '0'), data, situ);
-                alert("✅ Status Atualizado e Logs Financeiros Enviados!");
-            } else {
-                alert("Status alterado com sucesso.");
-            }
-            location.reload();
-        }
-    } catch (e) { alert("Erro ao buscar dados."); }
-    finally { btn.disabled = false; btn.innerText = "Confirmar Atualização"; }
+        if (data === "erro") return alert("Pedido não encontrado!");
+        if (situ.includes('✅')) await dispararLogsFinais("#" + idLimpo.padStart(4, '0'), data, situ);
+        alert("✅ Status Atualizado!");
+        location.reload();
+    } catch (e) { alert("Erro ao buscar dados."); btn.disabled = false; }
 });
 
 async function dispararLogsFinais(id, dados, situacao) {
@@ -181,35 +153,25 @@ async function dispararLogsFinais(id, dados, situacao) {
             { name: "🚦 Status", value: situacao, inline: true }
         ]
     };
-    // Envia para Registro de Venda e Comissão
     await fetch(webhooks.registroVenda, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ embeds: [embedReg] }) });
     await fetch(webhooks.comissao, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ embeds: [embedCom] }) });
 }
 
-// LOGICA DAS TABS DE DESCONTO
+// TABS GATILHO DE CÁLCULO
 document.querySelectorAll('.tab').forEach(btn => {
     btn.addEventListener('click', () => {
         descontoAtual = Number(btn.dataset.desconto);
         document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
         btn.classList.add('active');
-        const infoEl = document.getElementById('info-parceria');
-        infoEl.textContent = parcerias[descontoAtual];
-        infoEl.className = `info-parceria ${descontoAtual === 0 ? 'alerta-venda' : 'info-venda'}`;
-        // Recalcula os valores assim que clica na aba
-        calcular();
+        const info = document.getElementById('info-parceria');
+        info.textContent = parcerias[descontoAtual];
+        info.className = `info-parceria ${descontoAtual === 0 ? 'alerta-venda' : 'info-venda'}`;
+        calcular(); // Recalcula na hora ao trocar a aba
     });
 });
 
-document.getElementById('btnAbrirForm').addEventListener('click', () => {
-    document.getElementById('formUpdate').classList.add('hidden');
-    document.getElementById('formEncomenda').classList.toggle('hidden');
-});
-
-document.getElementById('btnToggleUpdate').addEventListener('click', () => {
-    document.getElementById('formEncomenda').classList.add('hidden');
-    document.getElementById('formUpdate').classList.toggle('hidden');
-});
-
+document.getElementById('btnAbrirForm').addEventListener('click', () => { document.getElementById('formUpdate').classList.add('hidden'); document.getElementById('formEncomenda').classList.toggle('hidden'); });
+document.getElementById('btnToggleUpdate').addEventListener('click', () => { document.getElementById('formEncomenda').classList.add('hidden'); document.getElementById('formUpdate').classList.toggle('hidden'); });
 document.getElementById('limparOrcamento').addEventListener('click', () => location.reload());
 
 renderTabela();
