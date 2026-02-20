@@ -27,3 +27,13 @@ input, select { background: #0f172a; border: 1px solid var(--border); color: whi
 .alerta-venda { background: rgba(239, 68, 68, 0.1); color: #f87171; border-left: 4px solid #ef4444; }
 .info-venda { background: rgba(59, 130, 246, 0.1); color: #60a5fa; border-left: 4px solid var(--accent); }
 .material-info { background: #0f172a; padding: 10px; border-radius: 8px; border: 1px solid var(--border); margin-bottom: 15px; font-size: 0.9rem; }
+
+.hidden { display: none !important; }
+
+/* Visual profissional para a sidebar e botões */
+.form-card { background: #1e293b; padding: 20px; border-radius: 12px; border: 1px solid #334155; margin-top: 20px; }
+.btn-register-trigger { background: #22c55e; color: white; width: 100%; padding: 12px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; margin-top: 15px; }
+.btn-secondary-outline { background: transparent; color: #94a3b8; border: 1px solid #334155; width: 100%; padding: 10px; border-radius: 8px; cursor: pointer; margin-top: 10px; }
+.info-parceria { margin-top: 15px; padding: 12px; border-radius: 8px; font-weight: 500; font-size: 0.9rem; min-height: 45px; }
+.alerta-venda { background: rgba(239, 68, 68, 0.1); color: #f87171; border-left: 4px solid #ef4444; }
+.info-venda { background: rgba(59, 130, 246, 0.1); color: #60a5fa; border-left: 4px solid #3b82f6; }
