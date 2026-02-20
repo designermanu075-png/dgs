@@ -1,107 +1,94 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Orçamento FiveM</title>
-  <link rel="stylesheet" href="style.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Arsenal System - FiveM</title>
+    <link rel="stylesheet" href="style.css">
 </head>
-
 <body>
+    <div class="dashboard">
+        <div class="main-content">
+            <header class="header">
+                <div>
+                    <h1>Arsenal System <span class="badge">FiveM</span></h1>
+                    <p>Gerenciamento de munições e produção profissional</p>
+                </div>
+                <button id="limparOrcamento" class="btn-clear-header">
+                    <span>🗑️</span> Limpar Orçamento
+                </button>
+            </header>
 
-<div class="dashboard">
-    <div class="main-content">
-        <header class="header">
-            <h1>Arsenal System <span class="badge">FiveM</span></h1>
-            <p>Gerenciamento de munições e produção</p>
-        </header>
+            <section class="card-table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Produto</th>
+                            <th>Preço Pack</th>
+                            <th>Qtd. Munições</th>
+                            <th>Total Packs</th>
+                            <th>Subtotal</th>
+                        </tr>
+                    </thead>
+                    <tbody id="linhas"></tbody>
+                </table>
+            </section>
 
-        <section class="card-table">
-            <table>
-                <thead>
-                    <tr>
-                        <th>Produto</th>
-                        <th>Preço Pack</th>
-                        <th>Qtd. Munições</th>
-                        <th>Total Packs</th>
-                        <th>Subtotal</th>
-                    </tr>
-                </thead>
-                <tbody id="linhas">
-                    </tbody>
-            </table>
-        </section>
-
-        <div class="actions">
-            <div class="tabs">
-                <button class="tab active" data-desconto="0">Sem Desconto</button>
-                <button class="tab" data-desconto="20">20% OFF</button>
-                <button class="tab" data-desconto="30">30% OFF</button>
+            <div class="actions-container">
+                <div class="tabs">
+                    <button class="tab active" data-desconto="0">Sem Desconto</button>
+                    <button class="tab" data-desconto="20">20% OFF</button>
+                    <button class="tab" data-desconto="30">30% OFF</button>
+                </div>
+                <div id="info-parceria" class="info-parceria"></div>
             </div>
         </div>
-    </div>
 
-    <aside class="sidebar">
-        <div class="sticky-card">
-            <button id="limparOrcamento" class="btn-clear-top">
-                <span class="icon">🗑️</span> Limpar Orçamento
-            </button>
-
-            <div class="summary-card">
-                <h3>Resumo do Pedido</h3>
-                <div class="stat-row">
-                    <span>Total Packs:</span>
-                    <strong id="totalPacks">0</strong>
-                </div>
-                <div class="stat-row">
-                    <span>Subtotal:</span>
-                    <span id="totalSemDesconto">R$ 0,00</span>
-                </div>
-                <div class="stat-row discount">
-                    <span>Desconto Aplicado:</span>
-                    <span id="descontoAplicado">0%</span>
-                </div>
-                <div class="stat-row total">
-                    <span>Total Final:</span>
-                    <strong id="totalComDesconto">R$ 0,00</strong>
-                </div>
-                
-                <div class="commission-box">
-                    <div class="stat-row">
-                        <span>Sua Comissão (<small id="comissaoPorcentagem">5%</small>):</span>
-                        <strong id="comissaoValor">R$ 0,00</strong>
+        <aside class="sidebar">
+            <div class="sticky-card">
+                <div class="summary-card">
+                    <h3>Resumo do Pedido</h3>
+                    <div class="stat-row"><span>Total Packs:</span> <strong id="totalPacks">0</strong></div>
+                    <div class="stat-row"><span>Subtotal:</span> <span id="totalSemDesconto">R$ 0,00</span></div>
+                    <div class="stat-row discount"><span>Desconto Aplicado:</span> <span id="descontoAplicado">0%</span></div>
+                    <div class="stat-row total"><span>Total Final:</span> <strong id="totalComDesconto">R$ 0,00</strong></div>
+                    
+                    <div class="commission-box">
+                        <div class="stat-row">
+                            <span>Sua Comissão (<small id="comissaoPorcentagem">5%</small>):</span>
+                            <strong id="comissaoValor">R$ 0,00</strong>
+                        </div>
                     </div>
-                </div>
-            </div>
-
-            <div class="form-card">
-                <h3>Registro de Venda</h3>
-                <div class="input-group">
-                    <label>Comprador / FAC</label>
-                    <input type="text" id="nomeComprador" placeholder="Ex: Vagos / Nome">
-                </div>
-                <div class="input-group">
-                    <label>Membro Responsável</label>
-                    <input type="text" id="membro" placeholder="Seu nome">
-                </div>
-                <div class="input-group">
-                    <label>Situação</label>
-                    <select id="situacao">
-                        <option>🔄 Em andamento</option>
-                        <option>🔫 Falta entregar</option>
-                        <option>✅ Entregues</option>
-                    </select>
-                </div>
-                
-                <div class="material-info">
-                    <h4>Produção Necessária</h4>
-                    <p id="materialCalc">Aguardando dados...</p>
+                    <button id="btnAbrirForm" class="btn-register-trigger">📦 Registrar encomenda</button>
                 </div>
 
-                <button id="confirmarRegistro" class="btn-primary">Finalizar e Enviar</button>
+                <div id="formEncomenda" class="form-card hidden">
+                    <h3>Registro de Venda</h3>
+                    <div class="input-group">
+                        <label>Comprador / FAC</label>
+                        <input type="text" id="nomeComprador" placeholder="Ex: Vagos / Nome">
+                    </div>
+                    <div class="input-group">
+                        <label>Membro Responsável</label>
+                        <input type="text" id="membro" placeholder="Seu nome">
+                    </div>
+                    <div class="input-group">
+                        <label>Situação</label>
+                        <select id="situacao">
+                            <option>🔄 Em andamento</option>
+                            <option>🔫 Falta entregar</option>
+                            <option>✅ Entregues</option>
+                        </select>
+                    </div>
+                    <div class="material-info">
+                        <h4>Materiais Necessários</h4>
+                        <p id="materialCalc">🧨 Pólvoras: 0 | 🐚 Cartuchos: 0</p>
+                    </div>
+                    <button id="confirmarRegistro" class="btn-primary">Finalizar e Enviar</button>
+                </div>
             </div>
-        </div>
-    </aside>
-</div>
+        </aside>
+    </div>
+    <script src="script.js"></script>
 </body>
 </html>
